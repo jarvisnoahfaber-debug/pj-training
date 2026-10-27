@@ -64,6 +64,55 @@ textarea{min-height:70px}
 .edrow{display:grid;grid-template-columns:1fr 56px 70px 40px;gap:6px;align-items:center;margin:6px 0}
 .edrow input{padding:8px 6px;text-align:center}
 .edrow span{font-size:15px}
+/* ===== Design ===== */
+:root{--kraft:#7aa2ff;--fechten:#f2b84b;--cardio:#4cc38a}
+h1{font-size:30px}
+.sec{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:26px 2px 8px}
+.hero{border-radius:22px;padding:18px;margin:14px 0 4px;background:linear-gradient(135deg,#2a3c6e,#18203a);border:1px solid #33467d}
+.hero.fechten{background:linear-gradient(135deg,#5a4318,#241c0f);border-color:#6a5222}
+.hero.cardio{background:linear-gradient(135deg,#1d5a3c,#10251a);border-color:#2a6b4a}
+.hero.ruhe{background:linear-gradient(135deg,#2a2f3b,#171a21);border-color:#2f3442}
+.hero .lbl{font-size:12px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;opacity:.75}
+.hero .ttl{font-size:25px;font-weight:700;margin:6px 0 2px;letter-spacing:-.3px}
+.hero .meta{opacity:.8;font-size:14px;margin-bottom:14px}
+.hero .ex-chips{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 14px}
+.hero .ex-chips span{font-size:12px;background:rgba(255,255,255,.08);border-radius:999px;padding:3px 9px}
+.hero button{background:#fff;color:#0b0f1a;font-weight:700;width:100%;min-height:52px;font-size:18px}
+.ico{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.ico.kraft{background:#1f2a4a}.ico.fechten{background:#3b2f14}.ico.cardio{background:#123323}
+.tpl{border-left:4px solid var(--kraft);padding:12px}
+.tpl.fechten{border-left-color:var(--fechten)}.tpl.cardio{border-left-color:var(--cardio)}
+.tpl .meta{font-size:13px;color:var(--muted)}
+.woche{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px}
+.woche div{background:var(--surface);border-radius:12px;padding:7px 0 8px;text-align:center;font-size:11px;color:var(--muted)}
+.woche div b{display:block;font-size:17px;margin-top:2px;color:var(--text)}
+.woche div i{display:block;height:6px;width:6px;border-radius:50%;margin:5px auto 0;background:transparent}
+.woche .heute{outline:2px solid var(--accent)}
+.woche .hat i{background:var(--ok)}
+.woche .hat.fechten i{background:var(--fechten)}
+.wochetxt{font-size:13px;color:var(--muted);margin:8px 2px 0}
+.runhead{position:sticky;top:0;z-index:4;background:rgba(15,17,21,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);margin:0 -16px;padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;border-bottom:1px solid #1f232d}
+.prog{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));transition:width .3s}
+.ex{border-left:4px solid var(--surface2)}
+.ex.fertig{border-left-color:var(--ok);opacity:.85}
+.ex .row h3{display:flex;align-items:center;gap:10px}
+.badge{width:28px;height:28px;border-radius:50%;background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none}
+.ex.fertig .badge{background:var(--ok);color:#06150d}
+.set.next input{box-shadow:inset 0 0 0 1.5px #4a5f9c}
+.set.next .nr{color:var(--accent)}
+.rest{overflow:hidden}
+.restfill{position:absolute;left:0;bottom:0;height:4px;background:var(--accent);transition:width .5s linear}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.tile{border-radius:18px;padding:14px}
+.tile .v{font-size:27px;font-weight:700;letter-spacing:-.5px}
+.tile .l{font-size:13px;opacity:.75;margin-top:2px}
+.tile.a{background:#1f2a4a}.tile.b{background:#163626}.tile.c{background:#3b2f14}.tile.d{background:#2c2142}
+.vitem{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:1px solid #232733}
+.vitem:last-child{border:0}
+.vitem .ico{width:36px;height:36px;font-size:17px;border-radius:10px}
+.vitem small{color:var(--muted)}
+.st-ok{color:var(--ok);font-size:13px}.st-wait{color:var(--warn);font-size:13px}
 </style>
 </head>
 <body>
@@ -80,20 +129,22 @@ textarea{min-height:70px}
 <section id="s-home" class="screen">
   <div class="top"><h1 id="hallo">Training</h1><button class="ghost small" id="btnWer">Wechseln</button></div>
   <div class="muted" id="heute"></div>
+  <div class="woche" id="woche"></div><div class="wochetxt" id="wochetxt"></div>
+  <div id="hero"></div>
   <div id="resumeBox" class="card hidden">
     <div>Laufendes Training: <b id="resumeName"></b> seit <span id="resumeZeit"></span></div>
     <div class="row" style="margin-top:8px"><button class="primary grow" id="btnResume">Fortsetzen</button><button class="danger" id="btnVerwerfen">Verwerfen</button></div>
   </div>
   <div id="queueBox" class="warnbox hidden"></div>
-  <h2>Vorlagen</h2>
+  <div class="sec">Deine Vorlagen</div>
   <div id="tplList"></div>
   <div class="row" style="margin-top:6px">
     <button class="grow" id="btnNeueVorlage">+ Neue Vorlage</button>
     <button class="grow" id="btnFrei">Freies Training</button>
   </div>
-  <h2>Verlauf</h2>
-  <div class="card list" id="verlauf"></div>
-  <h2>Einstellungen</h2>
+  <div class="sec">Letzte Einheiten</div>
+  <div class="card" id="verlauf"></div>
+  <div class="sec">Einstellungen</div>
   <div class="card">
     <div class="row"><span class="grow">Pause zwischen Sätzen</span><select id="optPause" style="width:110px"><option>60</option><option>90</option><option>120</option><option>150</option><option>180</option></select><span class="small muted">Sek.</span></div>
     <div class="row" style="margin-top:8px"><span class="grow">Ansage am Pausenende</span><input type="checkbox" id="optStimme" style="width:24px;height:24px"></div>
@@ -118,17 +169,17 @@ textarea{min-height:70px}
 
 <!-- TRAINING -->
 <section id="s-run" class="screen">
-  <div class="top"><div><div class="muted small" id="runArt"></div><b id="runName"></b></div><div class="clock" id="runClock">0:00</div></div>
+  <div class="runhead"><div class="top" style="margin:0"><div class="row"><div class="ico" id="runIco">🏋️</div><div><div class="muted small" id="runArt"></div><b id="runName" style="font-size:18px"></b></div></div><div class="clock" id="runClock">0:00</div></div><div class="small muted" id="runStat" style="margin-top:8px"></div><div class="prog"><i id="runProg"></i></div></div>
   <div id="runEx"></div>
   <button style="width:100%;margin-top:6px" id="btnRunAdd" class="hidden">+ Übung</button>
   <div class="card" id="cardioCard">
-    <h3 style="margin:0 0 8px">Cardio</h3>
+    <h3 style="margin:0 0 10px;display:flex;gap:10px;align-items:center"><span class="ico cardio" style="width:32px;height:32px;font-size:16px;border-radius:9px">🚴</span>Cardio</h3>
     <div class="row"><select id="cardioArt" class="grow"><option>Rad</option><option>Laufband</option><option>Crosstrainer</option><option>Rudergerät</option><option>Stepper</option><option>Laufen draußen</option></select>
     <input id="cardioMin" type="number" inputmode="numeric" placeholder="Min." style="width:80px"></div>
   </div>
   <div class="card"><textarea id="runNotiz" placeholder="Notiz (optional, z. B. Gefühl, Schmerzen, Ort)"></textarea></div>
   <button class="danger" style="width:100%" id="btnRunAbbruch">Training verwerfen</button>
-  <div class="rest" id="rest"><div class="t" id="restT">1:30</div><div class="grow small muted">Pause</div><button id="restMinus">−15</button><button id="restPlus">+15</button><button id="restSkip">✕</button></div>
+  <div class="rest" id="rest"><div class="t" id="restT">1:30</div><div class="grow small muted">Pause</div><button id="restMinus">−15</button><button id="restPlus">+15</button><button id="restSkip">✕</button><div class="restfill" id="restFill"></div></div>
   <div class="bar"><div class="inner"><button class="ok" id="btnFertig">Training beenden</button></div></div>
 </section>
 
@@ -136,7 +187,7 @@ textarea{min-height:70px}
 <section id="s-end" class="screen">
   <h1>Stark 💪</h1>
   <div class="muted" id="endSub"></div>
-  <div class="card sum" id="endSum"></div>
+  <div class="tiles" id="endSum"></div>
   <div id="endStatus"></div>
   <pre id="endText" class="card small" style="white-space:pre-wrap;color:var(--muted)"></pre>
   <div class="bar"><div class="inner"><button id="btnKopie">Text kopieren</button><button class="primary" id="btnHome">Fertig</button></div></div>
@@ -208,6 +259,29 @@ function beep(f=880,d=.15){if(!actx)return;try{const o=actx.createOscillator(),g
 function say(t){if(!$("optStimme").checked||!("speechSynthesis" in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";speechSynthesis.speak(u)}catch(e){}}
 let wake=null;async function wakeOn(){try{if("wakeLock" in navigator)wake=await navigator.wakeLock.request("screen")}catch(e){}}
 
+/* ===== Darstellung ===== */
+const ICON={kraft:"🏋️",fechten:"🤺",cardio:"🚴"};
+const artKey=a=>{a=String(a||"").toLowerCase();return a.startsWith("fecht")?"fechten":a.startsWith("cardio")?"cardio":"kraft"};
+const metaTxt=v=>(v.art==="fechten"?"Fechtstunde":v.art==="cardio"?"Cardio":`${v.ex.length} Übungen · ${v.ex.reduce((a,x)=>a+(+x.s||0),0)} Sätze`)+(v.cardio?` · ${v.cardio} Min. Cardio`:"");
+function heuteVorlage(vl){const wd=["so","mo","di","mi","do","fr","sa"][new Date().getDay()];
+  let i=vl.findIndex(v=>v.id===wd);if(i<0&&(wd==="mi"||wd==="do"))i=vl.findIndex(v=>v.art==="fechten");return i}
+function renderWoche(){
+  const h=S.get(K("hist"),[]),d=new Date(),mo=new Date(d);mo.setDate(d.getDate()-((d.getDay()+6)%7));
+  const tage=["Mo","Di","Mi","Do","Fr","Sa","So"];let n=0;
+  $("woche").innerHTML=tage.map((t,k)=>{const x=new Date(mo);x.setDate(mo.getDate()+k);
+    const iso=`${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;const e=h.filter(y=>y.datum===iso);if(e.length)n++;
+    const heute=x.toDateString()===d.toDateString();
+    return `<div class="${heute?"heute ":""}${e.length?"hat "+(e.some(y=>artKey(y.art)==="fechten")?"fechten":""):""}">${t}<b>${x.getDate()}</b><i></i></div>`}).join("");
+  $("wochetxt").textContent=n?`${n} ${n===1?"Einheit":"Einheiten"} diese Woche`:"Diese Woche noch keine Einheit";
+}
+function renderHero(vl){
+  const i=heuteVorlage(vl),wd=new Date().getDay();
+  if(i>=0){const v=vl[i],a=artKey(v.art);
+    $("hero").innerHTML=`<div class="hero ${a}"><div class="lbl">Heute dran</div><div class="ttl">${ICON[a]} ${esc(v.name)}</div><div class="meta">${metaTxt(v)}</div>${v.ex.length?`<div class="ex-chips">${v.ex.slice(0,6).map(x=>`<span>${esc(x.n)}</span>`).join("")}</div>`:""}<button data-start="${i}">Training starten</button></div>`;
+  } else {
+    $("hero").innerHTML=`<div class="hero ruhe"><div class="lbl">Heute</div><div class="ttl">${wd===0||wd===6?"😌 Ruhetag":"Kein Training geplant"}</div><div class="meta">${wd===0||wd===6?"Erholung gehört zum Plan. Lust auf mehr? Unten frei starten.":"Unten eine Vorlage wählen oder frei trainieren."}</div></div>`;
+  }
+}
 /* ===== Start ===== */
 function home(){
   if(!wer){show("s-wer");return}
@@ -216,7 +290,8 @@ function home(){
   $("heute").textContent=new Date().toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"});
   const wd=["so","mo","di","mi","do","fr","sa"][new Date().getDay()];
   const vl=vorlagen();
-  $("tplList").innerHTML=vl.length?vl.map((v,i)=>`<div class="card tpl"><div class="grow"><b>${esc(v.name)}${v.id===wd||(wd==="mi"||wd==="do")&&v.art==="fechten"?'<span class="pill">heute</span>':""}</b><span class="small muted">${v.art==="fechten"?"Fechten":v.art==="cardio"?"Cardio":v.ex.length+" Übungen"}${v.cardio?" · "+v.cardio+" Min. Cardio":""}</span></div><button class="ghost" data-edit="${i}">✎</button><button class="primary" data-start="${i}">Start</button></div>`).join("")
+  renderWoche();renderHero(vl);
+  $("tplList").innerHTML=vl.length?vl.map((v,i)=>{const a=artKey(v.art);return `<div class="card tpl ${a}"><div class="ico ${a}">${ICON[a]}</div><div class="grow"><b>${esc(v.name)}</b><div class="meta">${metaTxt(v)}</div></div><button class="ghost" data-edit="${i}">✎</button><button class="primary" data-start="${i}">Start</button></div>`}).join("")
     :`<div class="card muted">Noch keine Vorlage. Lege deine Einheiten mit „+ Neue Vorlage“ an – einmalig, danach nur noch „Start“.</div>`;
   const akt=S.get(K("aktiv"),null);
   $("resumeBox").classList.toggle("hidden",!akt);
@@ -225,7 +300,7 @@ function home(){
   $("queueBox").classList.toggle("hidden",!q.length);
   $("queueBox").textContent=q.length?`${q.length} Training(s) noch nicht gesendet – wird automatisch nachgeholt, sobald Internet da ist.`:"";
   const h=S.get(K("hist"),[]).slice(-8).reverse();
-  $("verlauf").innerHTML=h.length?h.map(x=>`<div class="item"><span>${esc(x.name)}<br><small>${x.datum.slice(8,10)}.${x.datum.slice(5,7)}. · ${x.dauer} Min.</small></span><small>${x.gesendet?"✓ gesendet":"wartet"}</small></div>`).join(""):'<div class="muted small">Noch nichts.</div>';
+  $("verlauf").innerHTML=h.length?h.map(x=>{const a=artKey(x.art);return `<div class="vitem"><div class="ico ${a}">${ICON[a]}</div><div class="grow"><b>${esc(x.name)}</b><br><small>${new Date(x.datum+"T12:00").toLocaleDateString("de-AT",{weekday:"short",day:"numeric",month:"numeric"})} · ${x.dauer} Min.${x.saetze?" · "+x.saetze+" Sätze":""}</small></div><span class="${x.gesendet?"st-ok":"st-wait"}">${x.gesendet?"✓ beim Schiri":"⏳ wartet"}</span></div>`}).join(""):'<div class="muted small">Noch keine Einheit. Los geht\'s!</div>';
   $("optPause").value=String(S.get(K("pause"),90));$("optStimme").checked=S.get(K("stimme"),true);
   show("s-home");flushQueue();
 }
@@ -233,6 +308,7 @@ document.querySelectorAll("[data-wer]").forEach(b=>b.onclick=()=>{wer=b.dataset.
 $("btnWer").onclick=()=>{if(confirm("Teilnehmer wechseln?")){wer=null;S.del("wer");show("s-wer")}};
 $("optPause").onchange=()=>S.set(K("pause"),+$("optPause").value);
 $("optStimme").onchange=()=>S.set(K("stimme"),$("optStimme").checked);
+$("hero").onclick=e=>{const s=e.target.dataset.start;if(s!==undefined)startTraining(vorlagen()[+s])};
 $("tplList").onclick=e=>{const s=e.target.dataset.start,ed=e.target.dataset.edit;if(s!==undefined)startTraining(vorlagen()[+s]);if(ed!==undefined)edit(+ed)};
 $("btnNeueVorlage").onclick=()=>edit(-1);
 $("btnFrei").onclick=()=>startTraining({name:"Freies Training",art:"kraft",cardio:0,ex:[]});
@@ -305,7 +381,7 @@ function startTraining(v){
   S.set(K("aktiv"),T);runOpen();
 }
 function runOpen(){
-  $("runName").textContent=T.name;$("runArt").textContent=T.art==="fechten"?"Fechten":T.art==="cardio"?"Cardio":"Krafttraining";
+  $("runName").textContent=T.name;$("runIco").textContent=ICON[artKey(T.art)];$("runIco").className="ico "+artKey(T.art);$("runArt").textContent=T.art==="fechten"?"Fechten":T.art==="cardio"?"Cardio":"Krafttraining";
   $("btnRunAdd").classList.toggle("hidden",T.art!=="kraft");
   $("cardioCard").classList.toggle("hidden",T.art==="fechten");
   $("cardioArt").value=T.cardio.art;$("cardioMin").value=T.cardio.min;$("cardioMin").placeholder=T.cardioPlan?`${T.cardioPlan} Min.`:"Min.";
@@ -315,11 +391,14 @@ function runOpen(){
 }
 function runRender(){
   $("runEx").innerHTML=T.art==="fechten"?`<div class="card"><b>Fechtstunde läuft</b><div class="muted small">Am Ende „Training beenden“ – Dauer wird automatisch erfasst. Ort/Besonderes in die Notiz.</div></div>`:
-  T.ex.map((x,i)=>{const l=letzte(x.n);return `<div class="card ex"><div class="row"><h3 class="grow">${esc(x.n)}</h3><button class="ghost small" data-exdel="${i}">✕</button></div>
+  T.ex.map((x,i)=>{const l=letzte(x.n),fertig=x.sets.length&&x.sets.every(s=>s.ok),nx=x.sets.findIndex(s=>!s.ok);return `<div class="card ex${fertig?" fertig":""}"><div class="row"><h3 class="grow"><span class="badge">${fertig?"✓":i+1}</span>${esc(x.n)}</h3><button class="ghost small" data-exdel="${i}">✕</button></div>
    <div class="last">${l?"Letztes Mal: "+l.map(s=>`${s.wdh}×${s.kg||0}`).join(", "):"Neu"}</div>
    <div class="head"><span>#</span><span>kg</span><span>Wdh.</span><span></span></div>
-   ${x.sets.map((s,j)=>`<div class="set${s.ok?" done":""}"><span class="nr">${j+1}</span><input inputmode="decimal" value="${esc(s.kg)}" data-i="${i}" data-j="${j}" data-k="kg" placeholder="kg"><input inputmode="numeric" value="${esc(s.wdh)}" data-i="${i}" data-j="${j}" data-k="wdh" placeholder="Wdh."><button data-ok="${i}:${j}">✓</button></div>`).join("")}
+   ${x.sets.map((s,j)=>`<div class="set${s.ok?" done":""}${j===nx?" next":""}"><span class="nr">${j+1}</span><input inputmode="decimal" value="${esc(s.kg)}" data-i="${i}" data-j="${j}" data-k="kg" placeholder="kg"><input inputmode="numeric" value="${esc(s.wdh)}" data-i="${i}" data-j="${j}" data-k="wdh" placeholder="Wdh."><button data-ok="${i}:${j}">✓</button></div>`).join("")}
    <div class="row"><button class="ghost small grow" data-addset="${i}">+ Satz</button>${x.sets.length>1?`<button class="ghost small" data-delset="${i}">− Satz</button>`:""}</div></div>`}).join("");
+  const ges=T.ex.reduce((a,x)=>a+x.sets.length,0),ok=T.ex.reduce((a,x)=>a+x.sets.filter(s=>s.ok).length,0),exf=T.ex.filter(x=>x.sets.length&&x.sets.every(s=>s.ok)).length;
+  $("runStat").textContent=T.art==="fechten"?"Fechtstunde – Zeit läuft":`${exf}/${T.ex.length} Übungen · ${ok}/${ges} Sätze erledigt`;
+  $("runProg").style.width=(T.art==="fechten"?100:ges?ok/ges*100:0)+"%";
 }
 function save(){S.set(K("aktiv"),T)}
 $("runEx").oninput=e=>{const d=e.target.dataset;if(d.k){T.ex[d.i].sets[d.j][d.k]=e.target.value.replace(",",".");save()}};
@@ -341,12 +420,13 @@ function tick(){const s=Math.max(0,Math.floor((Date.now()-new Date(T.start))/100
 
 /* Pause */
 let restEnd=0;
-function restStart(){audio();restEnd=Date.now()+(+$("optPause").value||90)*1000;$("rest").classList.add("on");restTick()}
+let restTotal=90000;
+function restStart(){audio();restTotal=(+$("optPause").value||90)*1000;restEnd=Date.now()+restTotal;$("rest").classList.add("on");restTick()}
 function restStop(){restEnd=0;$("rest").classList.remove("on")}
 function restTick(){if(!restEnd)return;const r=Math.ceil((restEnd-Date.now())/1000);
   if(r<=0){restStop();beep(660,.2);setTimeout(()=>beep(990,.3),200);say("Pause vorbei. Nächster Satz.");return}
-  if(r<=3&&r!==restTick.l){beep(880,.1)}restTick.l=r;$("restT").textContent=`${Math.floor(r/60)}:${pad(r%60)}`}
-$("restPlus").onclick=()=>{restEnd+=15000;restTick()};
+  if(r<=3&&r!==restTick.l){beep(880,.1)}restTick.l=r;$("restT").textContent=`${Math.floor(r/60)}:${pad(r%60)}`;$("restFill").style.width=Math.max(0,Math.min(100,(restEnd-Date.now())/restTotal*100))+"%"}
+$("restPlus").onclick=()=>{restEnd+=15000;restTotal+=15000;restTick()};
 $("restMinus").onclick=()=>{restEnd-=15000;restTick()};
 $("restSkip").onclick=restStop;
 
@@ -369,11 +449,11 @@ $("btnFertig").onclick=()=>{
   if(offen&&T.art==="kraft"&&!confirm(`${offen} Sätze nicht abgehakt – die zählen nicht. Trotzdem beenden?`))return;
   clearInterval(clockT);restStop();
   const z=zusammenfassen();
-  const hist=S.get(K("hist"),[]);hist.push({id:z.id,name:z.name,datum:z.datum,dauer:z.dauer,gesendet:false});S.set(K("hist"),hist.slice(-60));
+  const hist=S.get(K("hist"),[]);hist.push({id:z.id,name:z.name,art:z.art,datum:z.datum,dauer:z.dauer,saetze:z.ex.reduce((a,x)=>a+x.sets.length,0),gesendet:false});S.set(K("hist"),hist.slice(-60));
   const le=S.get(K("letzte"),{});z.ex.forEach(x=>le[x.n]=x.sets);S.set(K("letzte"),le);
   const q=S.get(K("queue"),[]);q.push(z);S.set(K("queue"),q);S.del(K("aktiv"));
   $("endSub").textContent=`${z.art} · ${z.dauer} Min. · ${z.datum.slice(8,10)}.${z.datum.slice(5,7)}.`;
-  $("endSum").innerHTML=`<div><span class="muted">Übungen</span><b>${z.ex.length}</b></div><div><span class="muted">Sätze</span><b>${z.ex.reduce((a,x)=>a+x.sets.length,0)}</b></div><div><span class="muted">Volumen</span><b>${z.volumen.toLocaleString("de-AT")} kg</b></div><div><span class="muted">Cardio</span><b>${z.cardio?z.cardio.min+" Min.":"–"}</b></div>`;
+  $("endSum").innerHTML=`<div class="tile a"><div class="v">${z.dauer}<small style="font-size:15px"> Min.</small></div><div class="l">Dauer</div></div><div class="tile b"><div class="v">${z.ex.reduce((a,x)=>a+x.sets.length,0)}</div><div class="l">Sätze · ${z.ex.length} Übungen</div></div><div class="tile c"><div class="v">${z.volumen.toLocaleString("de-AT")}<small style="font-size:15px"> kg</small></div><div class="l">bewegtes Gewicht</div></div><div class="tile d"><div class="v">${z.cardio?z.cardio.min:"–"}<small style="font-size:15px">${z.cardio?" Min.":""}</small></div><div class="l">Cardio${z.cardio?" · "+z.cardio.art:""}</div></div>`;
   $("endText").textContent=z.text;$("endStatus").innerHTML='<div class="warnbox">Wird an den Schiri gesendet …</div>';
   show("s-end");flushQueue(true);
 };
