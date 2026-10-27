@@ -146,6 +146,12 @@ textarea{min-height:70px}
 <div class="overlay" id="pick">
   <div class="top"><h1>Übung</h1><button class="ghost" id="pickZu">Schließen</button></div>
   <input id="pickQ" placeholder="Suchen, z. B. bank, rud, curl …" autocomplete="off">
+  <button style="width:100%;margin-top:8px" id="btnEigen">+ Eigene Übung anlegen</button>
+  <div class="card hidden" id="eigenBox">
+    <div class="small muted" style="margin-bottom:6px">Name der Übung, wie sie in der Liste stehen soll</div>
+    <input id="eigenName" placeholder="z. B. Kabelrudern einarmig" autocomplete="off">
+    <div class="row" style="margin-top:8px"><button class="ghost grow" id="eigenAbbruch">Abbrechen</button><button class="primary grow" id="eigenOk">Anlegen</button></div>
+  </div>
   <div class="list" id="pickList"></div>
 </div>
 
@@ -258,21 +264,34 @@ $("btnEdDel").onclick=()=>{if(confirm("Vorlage löschen?")){const vl=vorlagen();
 
 /* ===== Übung wählen ===== */
 let pickCb=null;
-function pick(cb){pickCb=cb;$("pickQ").value="";pickRender();$("pick").classList.add("on");setTimeout(()=>$("pickQ").focus(),50)}
+function pick(cb){pickCb=cb;$("pickQ").value="";$("eigenBox").classList.add("hidden");$("btnEigen").classList.remove("hidden");pickRender();$("pick").classList.add("on");setTimeout(()=>$("pickQ").focus(),50)}
 function pickRender(){
   const q=$("pickQ").value.trim().toLowerCase();
   const eigene=S.get(K("eigene"),[]).map(n=>({n,g:"Eigene"}));
   const l=[...eigene,...ALLE].filter(x=>!q||x.n.toLowerCase().includes(q));
-  let html=l.slice(0,60).map(x=>`<div class="item" data-n="${esc(x.n)}"><span>${esc(x.n)}</span><small>${x.g}</small></div>`).join("");
+  let html=l.slice(0,60).map(x=>`<div class="item" data-n="${esc(x.n)}"><span>${esc(x.n)}</span>${x.g==="Eigene"?`<small><span class="pill">eigene</span> <button class="ghost small" data-eigdel="${esc(x.n)}" style="min-height:0;padding:2px 6px">✕</button></small>`:`<small>${x.g}</small>`}</div>`).join("");
   if(q&&!l.some(x=>x.n.toLowerCase()===q))html=`<div class="item" data-neu="1"><span>„${esc($("pickQ").value.trim())}“ als eigene Übung</span><small>+</small></div>`+html;
   $("pickList").innerHTML=html;
 }
 $("pickQ").oninput=pickRender;
 $("pickZu").onclick=()=>$("pick").classList.remove("on");
+function eigeneAnlegen(n){
+  n=(n||"").trim().replace(/\s+/g," ");if(!n)return null;
+  const vorhanden=[...S.get(K("eigene"),[]),...ALLE.map(x=>x.n)].find(x=>x.toLowerCase()===n.toLowerCase());
+  if(vorhanden)return vorhanden;
+  const eg=S.get(K("eigene"),[]);eg.unshift(n);S.set(K("eigene"),eg);return n;
+}
+function pickWaehle(n){if(!n)return;$("eigenBox").classList.add("hidden");$("pick").classList.remove("on");pickCb&&pickCb(n)}
+$("btnEigen").onclick=()=>{$("eigenName").value=$("pickQ").value.trim();$("eigenBox").classList.remove("hidden");$("btnEigen").classList.add("hidden");setTimeout(()=>$("eigenName").focus(),50)};
+$("eigenAbbruch").onclick=()=>{$("eigenBox").classList.add("hidden");$("btnEigen").classList.remove("hidden")};
+$("eigenOk").onclick=()=>{const n=eigeneAnlegen($("eigenName").value);if(!n){$("eigenName").focus();return}$("btnEigen").classList.remove("hidden");pickWaehle(n)};
+$("eigenName").onkeydown=e=>{if(e.key==="Enter")$("eigenOk").click()};
 $("pickList").onclick=e=>{
+  if(e.target.dataset.eigdel!==undefined){e.stopPropagation();const n=e.target.dataset.eigdel;
+    if(confirm(`Eigene Übung „${n}“ aus der Liste löschen?`)){S.set(K("eigene"),S.get(K("eigene"),[]).filter(x=>x!==n));pickRender()}return}
   const it=e.target.closest(".item");if(!it)return;let n=it.dataset.n;
-  if(it.dataset.neu){n=$("pickQ").value.trim();const eg=S.get(K("eigene"),[]);if(!eg.includes(n)){eg.push(n);S.set(K("eigene"),eg)}}
-  $("pick").classList.remove("on");pickCb&&pickCb(n);
+  if(it.dataset.neu)n=eigeneAnlegen($("pickQ").value);
+  pickWaehle(n);
 };
 
 /* ===== Training ===== */
