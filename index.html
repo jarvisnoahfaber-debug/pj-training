@@ -113,6 +113,24 @@ h1{font-size:30px}
 .vitem .ico{width:36px;height:36px;font-size:17px;border-radius:10px}
 .vitem small{color:var(--muted)}
 .st-ok{color:var(--ok);font-size:13px}.st-wait{color:var(--warn);font-size:13px}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:10px -16px 4px;padding:0 16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;padding:7px 13px;border-radius:999px;background:var(--surface2);font-size:14px;min-height:0;color:var(--text)}
+.chip.on{background:var(--accent);color:#0b0f1a;font-weight:600}
+.pk{align-items:center;justify-content:flex-start!important}
+.pk .grow b{font-weight:500;display:block}
+.pk .grow small{font-size:12px}
+.th{width:48px;height:48px;border-radius:10px;object-fit:cover;background:#e9ecf2;flex:none}
+.th.leer{display:flex;align-items:center;justify-content:center;background:var(--surface2);font-size:20px}
+.dbhead{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:18px 2px 4px}
+.thumb{width:46px;height:46px;border-radius:10px;object-fit:cover;background:#e9ecf2;flex:none}
+.ibtn{min-height:0;padding:6px 10px;border-radius:999px;font-size:14px}
+.animbox{background:#fff;border-radius:18px;overflow:hidden;margin:12px 0}
+.animbox img{width:100%;display:block}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.tags span{font-size:13px;background:var(--surface2);border-radius:999px;padding:4px 10px}
+.tags span.p{background:#1f2a4a;color:#c9d6ff}
+#infoSteps li{margin:6px 0;color:#cfd5dc}
 </style>
 </head>
 <body>
@@ -203,7 +221,18 @@ h1{font-size:30px}
     <input id="eigenName" placeholder="z. B. Kabelrudern einarmig" autocomplete="off">
     <div class="row" style="margin-top:8px"><button class="ghost grow" id="eigenAbbruch">Abbrechen</button><button class="primary grow" id="eigenOk">Anlegen</button></div>
   </div>
+  <div class="chips" id="pickChips"></div>
   <div class="list" id="pickList"></div>
+</div>
+
+<!-- ÜBUNG INFO -->
+<div class="overlay" id="info">
+  <div class="top"><h1 id="infoName" style="font-size:22px;margin-right:10px"></h1><button class="ghost" id="infoZu">Schließen</button></div>
+  <div class="animbox"><img id="infoImg" alt=""></div>
+  <div class="tags" id="infoTags"></div>
+  <div class="sec" style="margin-top:14px">Ausführung</div>
+  <ol id="infoSteps" class="small" style="padding-left:20px"></ol>
+  <div class="small muted" style="margin:14px 0 30px">Bilder &amp; Anleitung: free-exercise-db (gemeinfrei). Die Anleitung ist im Original auf Englisch.</div>
 </div>
 
 <script>
@@ -229,6 +258,36 @@ const LIB = {
   "Core":["Plank (Sek.)","Seitstütz (Sek.)","Crunches","Sit-ups","Hängendes Beinheben","Kabel-Crunch","Russian Twist","Ab-Roller","Dead Bug"]
 };
 const ALLE = Object.entries(LIB).flatMap(([g,l])=>l.map(n=>({n,g})));
+
+/* ===== Übungsdatenbank: free-exercise-db (876 Übungen, gemeinfrei), wird bei Bedarf geladen ===== */
+const DB_URLS=["https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/dist/exercises.json","https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"];
+const IMG_BASE="https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/";
+const DE_ID={"Bankdrücken (LH)":"Barbell_Bench_Press_-_Medium_Grip","Bankdrücken (KH)":"Dumbbell_Bench_Press","Schrägbankdrücken (LH)":"Barbell_Incline_Bench_Press_-_Medium_Grip","Schrägbankdrücken (KH)":"Incline_Dumbbell_Press","Negativ-Bankdrücken":"Decline_Barbell_Bench_Press","Brustpresse (Maschine)":"Machine_Bench_Press","Butterfly (Maschine)":"Butterfly","Kabelzug-Fliegende":"Cable_Crossover","Liegestütze":"Pushups","Dips (Brust)":"Dips_-_Chest_Version",
+"Klimmzüge":"Pullups","Klimmzüge (unterstützt)":"Band_Assisted_Pull-Up","Latzug breit":"Wide-Grip_Lat_Pulldown","Latzug eng":"Close-Grip_Front_Lat_Pulldown","Rudern (LH)":"Bent_Over_Barbell_Row","Rudern (KH, einarmig)":"One-Arm_Dumbbell_Row","Kabelrudern sitzend":"Seated_Cable_Rows","T-Bar-Rudern":"T-Bar_Row_with_Handle","Kreuzheben":"Barbell_Deadlift","Rumänisches Kreuzheben":"Romanian_Deadlift","Hyperextensions":"Hyperextensions_Back_Extensions","Pullover (Kabel)":"Straight-Arm_Pulldown","Face Pulls":"Face_Pull","Shrugs":"Barbell_Shrug",
+"Schulterdrücken (LH)":"Barbell_Shoulder_Press","Schulterdrücken (KH)":"Dumbbell_Shoulder_Press","Schulterpresse (Maschine)":"Machine_Shoulder_Military_Press","Arnold Press":"Arnold_Dumbbell_Press","Seitheben (KH)":"Side_Lateral_Raise","Seitheben (Kabel)":"Cable_Seated_Lateral_Raise","Frontheben":"Front_Dumbbell_Raise","Reverse Butterfly":"Reverse_Machine_Flyes","Aufrechtes Rudern":"Upright_Barbell_Row",
+"Bizepscurls (LH)":"Barbell_Curl","Bizepscurls (KH)":"Dumbbell_Bicep_Curl","Hammercurls":"Hammer_Curls","Scottcurls":"Preacher_Curl","Kabelcurls":"High_Cable_Curls","Trizepsdrücken (Kabel)":"Triceps_Pushdown","Overhead-Trizeps (Kabel)":"Cable_Rope_Overhead_Triceps_Extension","French Press":"EZ-Bar_Skullcrusher","Dips (Trizeps)":"Dips_-_Triceps_Version","Enges Bankdrücken":"Close-Grip_Barbell_Bench_Press",
+"Kniebeuge":"Barbell_Full_Squat","Frontkniebeuge":"Front_Barbell_Squat","Beinpresse":"Leg_Press","Hackenschmidt":"Hack_Squat","Ausfallschritte":"Dumbbell_Lunges","Bulgarian Split Squat":"Split_Squat_with_Dumbbells","Beinstrecker":"Leg_Extensions","Beinbeuger liegend":"Lying_Leg_Curls","Beinbeuger sitzend":"Seated_Leg_Curl","Hip Thrust":"Barbell_Hip_Thrust","Adduktoren (Maschine)":"Thigh_Adductor","Abduktoren (Maschine)":"Thigh_Abductor","Wadenheben stehend":"Standing_Calf_Raises","Wadenheben sitzend":"Seated_Calf_Raise",
+"Plank (Sek.)":"Plank","Seitstütz (Sek.)":"Side_Bridge","Crunches":"Crunches","Sit-ups":"Sit-Up","Hängendes Beinheben":"Hanging_Leg_Raise","Kabel-Crunch":"Cable_Crunch","Russian Twist":"Russian_Twist","Ab-Roller":"Ab_Roller","Dead Bug":"Dead_Bug"};
+const MUSKEL={abdominals:"Bauch",abductors:"Abduktoren",adductors:"Adduktoren",biceps:"Bizeps",calves:"Waden",chest:"Brust",forearms:"Unterarme",glutes:"Po",hamstrings:"Beinbeuger",lats:"Latissimus","lower back":"unterer Rücken","middle back":"mittlerer Rücken",neck:"Nacken",quadriceps:"Oberschenkel",shoulders:"Schultern",traps:"Trapez",triceps:"Trizeps"};
+const GERAET={barbell:"Langhantel",dumbbell:"Kurzhantel",cable:"Kabelzug",machine:"Maschine","body only":"Körpergewicht",kettlebells:"Kettlebell",bands:"Band","e-z curl bar":"SZ-Stange","exercise ball":"Gymnastikball","foam roll":"Faszienrolle","medicine ball":"Medizinball",other:"Sonstiges"};
+const STUFE={beginner:"Einsteiger",intermediate:"Fortgeschritten",expert:"Profi"};
+const CHIPS=[["Alle",null,null],["Brust",["chest"],["Brust"]],["Rücken",["lats","middle back","lower back","traps"],["Rücken"]],["Schultern",["shoulders"],["Schultern"]],["Arme",["biceps","triceps","forearms"],["Arme"]],["Beine",["quadriceps","hamstrings","glutes","calves","adductors","abductors"],["Beine"]],["Bauch",["abdominals"],["Core"]],["Dehnen",null,null]];
+const SUCH={bankdrück:"bench",bank:"bench",schräg:"incline",negativ:"decline",kniebeug:"squat",rudern:"row",kreuzheb:"deadlift",drück:"press",schulter:"shoulder",latzug:"pulldown",klimmz:"pull",beinpress:"leg press",waden:"calf",fliegend:"fly",ausfall:"lunge",seitheb:"lateral raise",frontheb:"front raise",kurzhantel:"dumbbell",langhantel:"barbell",hantel:"dumbbell",kabel:"cable",maschine:"machine",liegestütz:"push",beinbeug:"leg curl",beinstreck:"leg extension",bizeps:"curl",trizeps:"triceps",dehn:"stretch",brust:"chest",rücken:"back",bauch:"crunch",hüft:"hip",nacken:"neck",unterarm:"wrist"};
+let DB=null,DBI={},dbLaden=null,dbFehler=false;
+function ladeDB(){if(DB)return Promise.resolve(DB);if(dbLaden)return dbLaden;
+  dbLaden=(async()=>{for(const u of DB_URLS){try{const r=await fetch(u);if(r.ok){DB=await r.json();DB.forEach(x=>DBI[x.id]=x);dbFehler=false;return DB}}catch(e){}}dbLaden=null;dbFehler=true;throw new Error("offline")})();return dbLaden}
+function dbId(n){return DE_ID[n]||(S.get(K("dbmap"),{}))[n]||null}
+const bild=(id,f=0)=>IMG_BASE+encodeURI(id)+"/"+f+".jpg";
+setInterval(()=>{document.querySelectorAll("img[data-anim]").forEach(i=>{if(!i.dataset.anim)return;const f=i.dataset.f==="1"?"0":"1";i.dataset.f=f;i.src=bild(i.dataset.anim,f)})},1000);
+function infoOeffnen(id,nameDe){
+  const zeig=()=>{const x=DBI[id];if(!x)return;
+    $("infoName").textContent=nameDe&&nameDe!==x.name?`${nameDe}`:x.name;
+    $("infoImg").dataset.anim=id;$("infoImg").dataset.f="0";$("infoImg").src=bild(id,0);
+    $("infoTags").innerHTML=(nameDe&&nameDe!==x.name?`<span>${esc(x.name)}</span>`:"")+x.primaryMuscles.map(m=>`<span class="p">${MUSKEL[m]||m}</span>`).join("")+x.secondaryMuscles.map(m=>`<span>${MUSKEL[m]||m}</span>`).join("")+(x.equipment?`<span>${GERAET[x.equipment]||x.equipment}</span>`:"")+(x.level?`<span>${STUFE[x.level]||x.level}</span>`:"");
+    $("infoSteps").innerHTML=(x.instructions||[]).map(s=>`<li>${esc(s)}</li>`).join("");
+    $("info").classList.add("on");$("info").scrollTop=0;};
+  if(DBI[id])zeig();else ladeDB().then(zeig).catch(()=>alert("Übungsdatenbank gerade nicht erreichbar (kein Internet?)."));
+}
 
 /* Vorläufige Vorlagen für Noah (Plan: Mo Drücken, Di Ziehen + 2 Beinübungen, Fr Ganzkörper, je 45 Min. Kraft + 15 Min. Cardio; Mi/Do Fechten).
    Übungen sind Platzhalter, bis Noahs abgegebener Plan eingesetzt ist – in der App frei änderbar. */
@@ -340,15 +399,27 @@ $("btnEdDel").onclick=()=>{if(confirm("Vorlage löschen?")){const vl=vorlagen();
 
 /* ===== Übung wählen ===== */
 let pickCb=null;
-function pick(cb){pickCb=cb;$("pickQ").value="";$("eigenBox").classList.add("hidden");$("btnEigen").classList.remove("hidden");pickRender();$("pick").classList.add("on");setTimeout(()=>$("pickQ").focus(),50)}
+let pickChip=0;
+function pick(cb){pickCb=cb;pickChip=0;$("pickQ").value="";ladeDB().then(()=>{if($("pick").classList.contains("on"))pickRender()}).catch(()=>{if($("pick").classList.contains("on"))pickRender()});$("eigenBox").classList.add("hidden");$("btnEigen").classList.remove("hidden");pickRender();$("pick").classList.add("on");setTimeout(()=>$("pickQ").focus(),50)}
 function pickRender(){
-  const q=$("pickQ").value.trim().toLowerCase();
+  const q=$("pickQ").value.trim().toLowerCase(),[,mus,grp]=CHIPS[pickChip],dehnen=CHIPS[pickChip][0]==="Dehnen";
+  $("pickChips").innerHTML=CHIPS.map((c,i)=>`<button class="chip${i===pickChip?" on":""}" data-chip="${i}">${c[0]}</button>`).join("");
+  const thumb=n=>{const id=dbId(n);return id?`<img class="th" loading="lazy" src="${bild(id)}" alt="">`:`<div class="th leer">💪</div>`};
   const eigene=S.get(K("eigene"),[]).map(n=>({n,g:"Eigene"}));
-  const l=[...eigene,...ALLE].filter(x=>!q||x.n.toLowerCase().includes(q));
-  let html=l.slice(0,60).map(x=>`<div class="item" data-n="${esc(x.n)}"><span>${esc(x.n)}</span>${x.g==="Eigene"?`<small><span class="pill">eigene</span> <button class="ghost small" data-eigdel="${esc(x.n)}" style="min-height:0;padding:2px 6px">✕</button></small>`:`<small>${x.g}</small>`}</div>`).join("");
-  if(q&&!l.some(x=>x.n.toLowerCase()===q))html=`<div class="item" data-neu="1"><span>„${esc($("pickQ").value.trim())}“ als eigene Übung</span><small>+</small></div>`+html;
+  const l=dehnen?[]:[...eigene,...ALLE].filter(x=>(!q||x.n.toLowerCase().includes(q))&&(!grp||x.g==="Eigene"&&!q||grp.includes(x.g)));
+  let html=l.slice(0,80).map(x=>{const id=dbId(x.n);return `<div class="item pk" data-n="${esc(x.n)}">${thumb(x.n)}<div class="grow"><b>${esc(x.n)}</b><small>${x.g==="Eigene"?'<span class="pill" style="margin:0">eigene</span>':x.g}</small></div>${id?`<button class="ghost ibtn" data-info="${esc(id)}" data-de="${esc(x.n)}">ⓘ</button>`:""}${x.g==="Eigene"?`<button class="ghost ibtn" data-eigdel="${esc(x.n)}">✕</button>`:""}</div>`}).join("");
+  if(q&&!l.some(x=>x.n.toLowerCase()===q))html=`<div class="item pk" data-neu="1"><div class="th leer">＋</div><div class="grow"><b>„${esc($("pickQ").value.trim())}“ als eigene Übung</b></div></div>`+html;
+  if(DB){
+    let qq=q;Object.entries(SUCH).forEach(([de,en])=>{if(qq.includes(de))qq=qq.replace(de,en)});
+    const tok=qq.split(/\s+/).filter(Boolean);
+    const treffer=DB.filter(x=>(dehnen?x.category==="stretching":x.category!=="stretching")&&(!mus||x.primaryMuscles.some(m=>mus.includes(m)))&&(!tok.length||tok.every(w=>x.name.toLowerCase().includes(w))||x.name.toLowerCase().includes(q)));
+    if(treffer.length)html+=`<div class="dbhead">Datenbank · ${treffer.length} Übungen (engl. Namen)</div>`+treffer.slice(0,60).map(x=>`<div class="item pk" data-db="${esc(x.id)}"><img class="th" loading="lazy" src="${bild(x.id)}" alt=""><div class="grow"><b>${esc(x.name)}</b><small>${x.primaryMuscles.map(m=>MUSKEL[m]||m).join(", ")}${x.equipment?" · "+(GERAET[x.equipment]||x.equipment):""}</small></div><button class="ghost ibtn" data-info="${esc(x.id)}">ⓘ</button></div>`).join("");
+    else if(q)html+=`<div class="dbhead">Datenbank · nichts gefunden</div>`;
+  } else html+=`<div class="dbhead">${dbFehler?"Datenbank offline nicht erreichbar":"Datenbank wird geladen …"}</div>`;
   $("pickList").innerHTML=html;
 }
+$("pickChips").onclick=e=>{const c=e.target.dataset.chip;if(c!==undefined){pickChip=+c;pickRender();$("pickList").scrollIntoView({block:"start"})}};
+$("infoZu").onclick=()=>$("info").classList.remove("on");
 $("pickQ").oninput=pickRender;
 $("pickZu").onclick=()=>$("pick").classList.remove("on");
 function eigeneAnlegen(n){
@@ -363,6 +434,8 @@ $("eigenAbbruch").onclick=()=>{$("eigenBox").classList.add("hidden");$("btnEigen
 $("eigenOk").onclick=()=>{const n=eigeneAnlegen($("eigenName").value);if(!n){$("eigenName").focus();return}$("btnEigen").classList.remove("hidden");pickWaehle(n)};
 $("eigenName").onkeydown=e=>{if(e.key==="Enter")$("eigenOk").click()};
 $("pickList").onclick=e=>{
+  if(e.target.dataset.info!==undefined){e.stopPropagation();infoOeffnen(e.target.dataset.info,e.target.dataset.de);return}
+  const dbit=e.target.closest("[data-db]");if(dbit){const x=DBI[dbit.dataset.db];if(!x)return;const m=S.get(K("dbmap"),{});m[x.name]=x.id;S.set(K("dbmap"),m);pickWaehle(x.name);return}
   if(e.target.dataset.eigdel!==undefined){e.stopPropagation();const n=e.target.dataset.eigdel;
     if(confirm(`Eigene Übung „${n}“ aus der Liste löschen?`)){S.set(K("eigene"),S.get(K("eigene"),[]).filter(x=>x!==n));pickRender()}return}
   const it=e.target.closest(".item");if(!it)return;let n=it.dataset.n;
@@ -391,7 +464,7 @@ function runOpen(){
 }
 function runRender(){
   $("runEx").innerHTML=T.art==="fechten"?`<div class="card"><b>Fechtstunde läuft</b><div class="muted small">Am Ende „Training beenden“ – Dauer wird automatisch erfasst. Ort/Besonderes in die Notiz.</div></div>`:
-  T.ex.map((x,i)=>{const l=letzte(x.n),fertig=x.sets.length&&x.sets.every(s=>s.ok),nx=x.sets.findIndex(s=>!s.ok);return `<div class="card ex${fertig?" fertig":""}"><div class="row"><h3 class="grow"><span class="badge">${fertig?"✓":i+1}</span>${esc(x.n)}</h3><button class="ghost small" data-exdel="${i}">✕</button></div>
+  T.ex.map((x,i)=>{const l=letzte(x.n),fertig=x.sets.length&&x.sets.every(s=>s.ok),nx=x.sets.findIndex(s=>!s.ok);return `<div class="card ex${fertig?" fertig":""}"><div class="row"><h3 class="grow"><span class="badge">${fertig?"✓":i+1}</span>${esc(x.n)}</h3>${dbId(x.n)?`<img class="thumb" data-anim="${esc(dbId(x.n))}" src="${bild(dbId(x.n))}" alt="" data-info="${esc(dbId(x.n))}" data-de="${esc(x.n)}">`:""}<button class="ghost small" data-exdel="${i}">✕</button></div>
    <div class="last">${l?"Letztes Mal: "+l.map(s=>`${s.wdh}×${s.kg||0}`).join(", "):"Neu"}</div>
    <div class="head"><span>#</span><span>kg</span><span>Wdh.</span><span></span></div>
    ${x.sets.map((s,j)=>`<div class="set${s.ok?" done":""}${j===nx?" next":""}"><span class="nr">${j+1}</span><input inputmode="decimal" value="${esc(s.kg)}" data-i="${i}" data-j="${j}" data-k="kg" placeholder="kg"><input inputmode="numeric" value="${esc(s.wdh)}" data-i="${i}" data-j="${j}" data-k="wdh" placeholder="Wdh."><button data-ok="${i}:${j}">✓</button></div>`).join("")}
@@ -404,6 +477,7 @@ function save(){S.set(K("aktiv"),T)}
 $("runEx").oninput=e=>{const d=e.target.dataset;if(d.k){T.ex[d.i].sets[d.j][d.k]=e.target.value.replace(",",".");save()}};
 $("runEx").onclick=e=>{
   const d=e.target.dataset;
+  if(d.info){infoOeffnen(d.info,d.de);return}
   if(d.ok){const[i,j]=d.ok.split(":").map(Number);const s=T.ex[i].sets[j];s.ok=!s.ok;
     if(s.ok){const nx=T.ex[i].sets[j+1];if(nx&&!nx.kg)nx.kg=s.kg;if(nx&&!nx.wdh)nx.wdh=s.wdh;restStart()}
     save();runRender();}
