@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PJ Training">
+<meta name="theme-color" content="#0f1115">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<title>PJ Training</title>
+<style>
+:root{--bg:#0f1115;--surface:#181b22;--surface2:#222632;--text:#eef0f3;--muted:#9aa3ae;--accent:#7aa2ff;--ok:#4cc38a;--warn:#f2b84b;--danger:#e5675f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:17px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
+body{padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 8px);overscroll-behavior:none}
+.screen{display:none;max-width:560px;margin:0 auto;padding-bottom:110px}
+.screen.on{display:block}
+h1{font-size:28px;margin:20px 0 4px;letter-spacing:-.3px}
+h2{font-size:19px;margin:22px 0 8px}
+.muted{color:var(--muted)}.small{font-size:14px}
+.card{background:var(--surface);border-radius:16px;padding:14px;margin:10px 0}
+.row{display:flex;gap:8px;align-items:center}
+.grow{flex:1;min-width:0}
+button{font:inherit;color:var(--text);background:var(--surface2);border:0;border-radius:12px;padding:12px 14px;min-height:46px;cursor:pointer}
+button.primary{background:var(--accent);color:#0b0f1a;font-weight:600}
+button.ok{background:var(--ok);color:#06150d;font-weight:600}
+button.ghost{background:transparent;color:var(--muted)}
+button.danger{background:transparent;color:var(--danger)}
+button.big{width:100%;font-size:19px;min-height:56px}
+input,select,textarea{font:inherit;color:var(--text);background:var(--surface2);border:0;border-radius:10px;padding:10px;width:100%}
+textarea{min-height:70px}
+.tpl{display:flex;align-items:center;gap:10px}
+.tpl .grow b{display:block}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(env(safe-area-inset-bottom) + 10px);background:linear-gradient(transparent,var(--bg) 30%)}
+.bar .inner{max-width:560px;margin:0 auto;display:flex;gap:8px}
+.bar .inner > *{flex:1}
+.top{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.clock{font-variant-numeric:tabular-nums;font-weight:700;font-size:22px}
+.ex h3{margin:0;font-size:18px}
+.last{font-size:13px;color:var(--muted);margin:2px 0 8px}
+.set{display:grid;grid-template-columns:28px 1fr 1fr 52px;gap:8px;align-items:center;margin:6px 0}
+.set .nr{color:var(--muted);text-align:center;font-weight:600}
+.set input{text-align:center;padding:10px 4px}
+.set button{min-height:42px;padding:0}
+.set.done input{background:#163626}
+.set.done button{background:var(--ok);color:#06150d}
+.head{display:grid;grid-template-columns:28px 1fr 1fr 52px;gap:8px;font-size:12px;color:var(--muted);text-align:center}
+.rest{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 84px);max-width:528px;margin:0 auto;background:#1c2540;border:1px solid #2c3a66;border-radius:16px;padding:10px 14px;display:none;align-items:center;gap:10px;z-index:5}
+.rest.on{display:flex}
+.rest .t{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;min-width:80px}
+.list .item{padding:12px 4px;border-bottom:1px solid #262a35;display:flex;justify-content:space-between;gap:8px}
+.list .item small{color:var(--muted)}
+.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface2);color:var(--muted);margin-left:6px}
+.warnbox{background:#3b2f14;color:var(--warn);border-radius:12px;padding:10px 12px;font-size:14px;margin:10px 0}
+.okbox{background:#123323;color:var(--ok);border-radius:12px;padding:10px 12px;font-size:14px;margin:10px 0}
+.sum div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #262a35}
+.sum div:last-child{border:0}
+.overlay{position:fixed;inset:0;background:var(--bg);z-index:10;display:none;padding:env(safe-area-inset-top) 16px 16px;overflow:auto}
+.overlay.on{display:block}
+.hidden{display:none!important}
+.edrow{display:grid;grid-template-columns:1fr 56px 70px 40px;gap:6px;align-items:center;margin:6px 0}
+.edrow input{padding:8px 6px;text-align:center}
+.edrow span{font-size:15px}
+</style>
+</head>
+<body>
+
+<!-- WER -->
+<section id="s-wer" class="screen">
+  <h1>Wer trainiert?</h1>
+  <p class="muted">Einmal auswählen, die App merkt es sich.</p>
+  <div class="card"><button class="big primary" data-wer="noah">Noah</button></div>
+  <div class="card"><button class="big primary" data-wer="clemens">Clemens</button></div>
+</section>
+
+<!-- START -->
+<section id="s-home" class="screen">
+  <div class="top"><h1 id="hallo">Training</h1><button class="ghost small" id="btnWer">Wechseln</button></div>
+  <div class="muted" id="heute"></div>
+  <div id="resumeBox" class="card hidden">
+    <div>Laufendes Training: <b id="resumeName"></b> seit <span id="resumeZeit"></span></div>
+    <div class="row" style="margin-top:8px"><button class="primary grow" id="btnResume">Fortsetzen</button><button class="danger" id="btnVerwerfen">Verwerfen</button></div>
+  </div>
+  <div id="queueBox" class="warnbox hidden"></div>
+  <h2>Vorlagen</h2>
+  <div id="tplList"></div>
+  <div class="row" style="margin-top:6px">
+    <button class="grow" id="btnNeueVorlage">+ Neue Vorlage</button>
+    <button class="grow" id="btnFrei">Freies Training</button>
+  </div>
+  <h2>Verlauf</h2>
+  <div class="card list" id="verlauf"></div>
+  <h2>Einstellungen</h2>
+  <div class="card">
+    <div class="row"><span class="grow">Pause zwischen Sätzen</span><select id="optPause" style="width:110px"><option>60</option><option>90</option><option>120</option><option>150</option><option>180</option></select><span class="small muted">Sek.</span></div>
+    <div class="row" style="margin-top:8px"><span class="grow">Ansage am Pausenende</span><input type="checkbox" id="optStimme" style="width:24px;height:24px"></div>
+  </div>
+</section>
+
+<!-- VORLAGE BEARBEITEN -->
+<section id="s-edit" class="screen">
+  <div class="top"><h1>Vorlage</h1><button class="ghost" id="btnEdZurueck">Abbrechen</button></div>
+  <input id="edName" placeholder="Name, z. B. Mo – Drücken">
+  <div class="row" style="margin-top:8px">
+    <select id="edArt" class="grow"><option value="kraft">Krafttraining</option><option value="fechten">Fechten</option><option value="cardio">nur Cardio</option></select>
+    <span class="small muted">Cardio</span><input id="edCardio" type="number" inputmode="numeric" style="width:70px" placeholder="Min.">
+  </div>
+  <div id="edExWrap">
+    <div class="edrow small muted" style="margin-top:12px"><span>Übung</span><span>Sätze</span><span>Wdh.</span><span></span></div>
+    <div id="edList"></div>
+    <button style="width:100%;margin-top:6px" id="btnEdAdd">+ Übung</button>
+  </div>
+  <div class="bar"><div class="inner"><button class="danger" id="btnEdDel">Löschen</button><button class="primary" id="btnEdSave">Speichern</button></div></div>
+</section>
+
+<!-- TRAINING -->
+<section id="s-run" class="screen">
+  <div class="top"><div><div class="muted small" id="runArt"></div><b id="runName"></b></div><div class="clock" id="runClock">0:00</div></div>
+  <div id="runEx"></div>
+  <button style="width:100%;margin-top:6px" id="btnRunAdd" class="hidden">+ Übung</button>
+  <div class="card" id="cardioCard">
+    <h3 style="margin:0 0 8px">Cardio</h3>
+    <div class="row"><select id="cardioArt" class="grow"><option>Rad</option><option>Laufband</option><option>Crosstrainer</option><option>Rudergerät</option><option>Stepper</option><option>Laufen draußen</option></select>
+    <input id="cardioMin" type="number" inputmode="numeric" placeholder="Min." style="width:80px"></div>
+  </div>
+  <div class="card"><textarea id="runNotiz" placeholder="Notiz (optional, z. B. Gefühl, Schmerzen, Ort)"></textarea></div>
+  <button class="danger" style="width:100%" id="btnRunAbbruch">Training verwerfen</button>
+  <div class="rest" id="rest"><div class="t" id="restT">1:30</div><div class="grow small muted">Pause</div><button id="restMinus">−15</button><button id="restPlus">+15</button><button id="restSkip">✕</button></div>
+  <div class="bar"><div class="inner"><button class="ok" id="btnFertig">Training beenden</button></div></div>
+</section>
+
+<!-- ENDE -->
+<section id="s-end" class="screen">
+  <h1>Stark 💪</h1>
+  <div class="muted" id="endSub"></div>
+  <div class="card sum" id="endSum"></div>
+  <div id="endStatus"></div>
+  <pre id="endText" class="card small" style="white-space:pre-wrap;color:var(--muted)"></pre>
+  <div class="bar"><div class="inner"><button id="btnKopie">Text kopieren</button><button class="primary" id="btnHome">Fertig</button></div></div>
+</section>
+
+<!-- ÜBUNG WÄHLEN -->
+<div class="overlay" id="pick">
+  <div class="top"><h1>Übung</h1><button class="ghost" id="pickZu">Schließen</button></div>
+  <input id="pickQ" placeholder="Suchen, z. B. bank, rud, curl …" autocomplete="off">
+  <div class="list" id="pickList"></div>
+</div>
+
+<script>
+"use strict";
+/* ===== Konfiguration: Google-Formular (wird nach dem Anlegen eingetragen) ===== */
+const FORM = {
+  url: "https://docs.google.com/forms/d/e/1FAIpQLSdGyDFhIPCHd2BL6E9S0PTPPMuvTFmj2JbOnjP-9yEOecsQww/formResponse",
+  teilnehmer: "entry.1649059925",
+  datum: "entry.657147385",
+  art: "entry.2009718183",
+  dauer: "entry.1562701684",
+  text: "entry.1956673251",
+  daten: "entry.1062304338"
+};
+
+/* ===== Übungsbibliothek ===== */
+const LIB = {
+  "Brust":["Bankdrücken (LH)","Bankdrücken (KH)","Schrägbankdrücken (LH)","Schrägbankdrücken (KH)","Negativ-Bankdrücken","Brustpresse (Maschine)","Butterfly (Maschine)","Kabelzug-Fliegende","Liegestütze","Dips (Brust)"],
+  "Rücken":["Klimmzüge","Klimmzüge (unterstützt)","Latzug breit","Latzug eng","Rudern (LH)","Rudern (KH, einarmig)","Kabelrudern sitzend","T-Bar-Rudern","Rudern (Maschine)","Kreuzheben","Rumänisches Kreuzheben","Hyperextensions","Pullover (Kabel)","Face Pulls","Shrugs"],
+  "Schultern":["Schulterdrücken (LH)","Schulterdrücken (KH)","Schulterpresse (Maschine)","Arnold Press","Seitheben (KH)","Seitheben (Kabel)","Frontheben","Reverse Butterfly","Aufrechtes Rudern"],
+  "Arme":["Bizepscurls (LH)","Bizepscurls (KH)","Hammercurls","Scottcurls","Kabelcurls","Trizepsdrücken (Kabel)","Overhead-Trizeps (Kabel)","French Press","Dips (Trizeps)","Enges Bankdrücken"],
+  "Beine":["Kniebeuge","Frontkniebeuge","Beinpresse","Hackenschmidt","Ausfallschritte","Bulgarian Split Squat","Beinstrecker","Beinbeuger liegend","Beinbeuger sitzend","Hip Thrust","Adduktoren (Maschine)","Abduktoren (Maschine)","Wadenheben stehend","Wadenheben sitzend"],
+  "Core":["Plank (Sek.)","Seitstütz (Sek.)","Crunches","Sit-ups","Hängendes Beinheben","Kabel-Crunch","Russian Twist","Ab-Roller","Dead Bug"]
+};
+const ALLE = Object.entries(LIB).flatMap(([g,l])=>l.map(n=>({n,g})));
+
+/* Vorläufige Vorlagen für Noah (Plan: Mo Drücken, Di Ziehen + 2 Beinübungen, Fr Ganzkörper, je 45 Min. Kraft + 15 Min. Cardio; Mi/Do Fechten).
+   Übungen sind Platzhalter, bis Noahs abgegebener Plan eingesetzt ist – in der App frei änderbar. */
+const START_NOAH = [
+  {id:"mo",name:"Mo – Drücken",art:"kraft",cardio:15,ex:[["Bankdrücken (LH)",4,"8"],["Schrägbankdrücken (KH)",3,"10"],["Schulterdrücken (KH)",3,"10"],["Seitheben (KH)",3,"12"],["Trizepsdrücken (Kabel)",3,"12"]]},
+  {id:"di",name:"Di – Ziehen + Beine",art:"kraft",cardio:15,ex:[["Klimmzüge",4,"max"],["Rudern (LH)",3,"8"],["Latzug eng",3,"10"],["Bizepscurls (KH)",3,"12"],["Beinpresse",3,"10"],["Rumänisches Kreuzheben",3,"10"]]},
+  {id:"fr",name:"Fr – Ganzkörper",art:"kraft",cardio:15,ex:[["Kniebeuge",3,"8"],["Bankdrücken (LH)",3,"8"],["Rudern (KH, einarmig)",3,"10"],["Schulterdrücken (KH)",3,"10"],["Plank (Sek.)",3,"45"]]},
+  {id:"fe",name:"Fechten (Skalden)",art:"fechten",cardio:0,ex:[]}
+];
+
+/* ===== Hilfen ===== */
+const $=id=>document.getElementById(id);
+const S={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const pad=n=>String(n).padStart(2,"0");
+const hm=d=>`${pad(d.getHours())}:${pad(d.getMinutes())}`;
+function isoLocal(d){const o=-d.getTimezoneOffset(),s=o>=0?"+":"-",a=Math.abs(o);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}${s}${pad(a/60|0)}:${pad(a%60)}`}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id));window.scrollTo(0,0)}
+let wer=S.get("wer",null);
+const K=k=>`${wer}:${k}`;
+const vorlagen=()=>S.get(K("vorlagen"),[]);
+const setVorlagen=v=>S.set(K("vorlagen"),v);
+
+/* ===== Ton ===== */
+let actx=null;
+function audio(){try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume()}catch(e){}}
+function beep(f=880,d=.15){if(!actx)return;try{const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime;o.frequency.value=f;g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
+function say(t){if(!$("optStimme").checked||!("speechSynthesis" in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";speechSynthesis.speak(u)}catch(e){}}
+let wake=null;async function wakeOn(){try{if("wakeLock" in navigator)wake=await navigator.wakeLock.request("screen")}catch(e){}}
+
+/* ===== Start ===== */
+function home(){
+  if(!wer){show("s-wer");return}
+  if(wer==="noah"&&!S.get(K("init"),false)){setVorlagen(START_NOAH.map(v=>({...v,ex:v.ex.map(([n,s,w])=>({n,s,w}))})));S.set(K("init"),true)}
+  $("hallo").textContent=wer==="noah"?"Servus Noah":"Servus Clemens";
+  $("heute").textContent=new Date().toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"});
+  const wd=["so","mo","di","mi","do","fr","sa"][new Date().getDay()];
+  const vl=vorlagen();
+  $("tplList").innerHTML=vl.length?vl.map((v,i)=>`<div class="card tpl"><div class="grow"><b>${esc(v.name)}${v.id===wd||(wd==="mi"||wd==="do")&&v.art==="fechten"?'<span class="pill">heute</span>':""}</b><span class="small muted">${v.art==="fechten"?"Fechten":v.art==="cardio"?"Cardio":v.ex.length+" Übungen"}${v.cardio?" · "+v.cardio+" Min. Cardio":""}</span></div><button class="ghost" data-edit="${i}">✎</button><button class="primary" data-start="${i}">Start</button></div>`).join("")
+    :`<div class="card muted">Noch keine Vorlage. Lege deine Einheiten mit „+ Neue Vorlage“ an – einmalig, danach nur noch „Start“.</div>`;
+  const akt=S.get(K("aktiv"),null);
+  $("resumeBox").classList.toggle("hidden",!akt);
+  if(akt){$("resumeName").textContent=akt.name;$("resumeZeit").textContent=hm(new Date(akt.start))}
+  const q=S.get(K("queue"),[]);
+  $("queueBox").classList.toggle("hidden",!q.length);
+  $("queueBox").textContent=q.length?`${q.length} Training(s) noch nicht gesendet – wird automatisch nachgeholt, sobald Internet da ist.`:"";
+  const h=S.get(K("hist"),[]).slice(-8).reverse();
+  $("verlauf").innerHTML=h.length?h.map(x=>`<div class="item"><span>${esc(x.name)}<br><small>${x.datum.slice(8,10)}.${x.datum.slice(5,7)}. · ${x.dauer} Min.</small></span><small>${x.gesendet?"✓ gesendet":"wartet"}</small></div>`).join(""):'<div class="muted small">Noch nichts.</div>';
+  $("optPause").value=String(S.get(K("pause"),90));$("optStimme").checked=S.get(K("stimme"),true);
+  show("s-home");flushQueue();
+}
+document.querySelectorAll("[data-wer]").forEach(b=>b.onclick=()=>{wer=b.dataset.wer;S.set("wer",wer);home()});
+$("btnWer").onclick=()=>{if(confirm("Teilnehmer wechseln?")){wer=null;S.del("wer");show("s-wer")}};
+$("optPause").onchange=()=>S.set(K("pause"),+$("optPause").value);
+$("optStimme").onchange=()=>S.set(K("stimme"),$("optStimme").checked);
+$("tplList").onclick=e=>{const s=e.target.dataset.start,ed=e.target.dataset.edit;if(s!==undefined)startTraining(vorlagen()[+s]);if(ed!==undefined)edit(+ed)};
+$("btnNeueVorlage").onclick=()=>edit(-1);
+$("btnFrei").onclick=()=>startTraining({name:"Freies Training",art:"kraft",cardio:0,ex:[]});
+$("btnResume").onclick=()=>{T=S.get(K("aktiv"));runOpen()};
+$("btnVerwerfen").onclick=()=>{if(confirm("Laufendes Training verwerfen?")){S.del(K("aktiv"));home()}};
+
+/* ===== Vorlage bearbeiten ===== */
+let edIdx=-1,edEx=[];
+function edit(i){
+  edIdx=i;const v=i>=0?vorlagen()[i]:{name:"",art:"kraft",cardio:15,ex:[]};
+  $("edName").value=v.name;$("edArt").value=v.art;$("edCardio").value=v.cardio||"";edEx=v.ex.map(x=>({...x}));
+  $("btnEdDel").classList.toggle("hidden",i<0);edRender();show("s-edit");
+}
+function edRender(){
+  $("edExWrap").classList.toggle("hidden",$("edArt").value!=="kraft");
+  $("edList").innerHTML=edEx.map((x,i)=>`<div class="edrow"><span>${esc(x.n)}</span><input type="number" inputmode="numeric" value="${x.s}" data-i="${i}" data-k="s"><input value="${esc(x.w)}" data-i="${i}" data-k="w"><button class="ghost" data-del="${i}">✕</button></div>`).join("");
+}
+$("edArt").onchange=edRender;
+$("edList").oninput=e=>{const i=e.target.dataset.i,k=e.target.dataset.k;if(i!==undefined)edEx[i][k]=k==="s"?+e.target.value||1:e.target.value};
+$("edList").onclick=e=>{if(e.target.dataset.del!==undefined){edEx.splice(+e.target.dataset.del,1);edRender()}};
+$("btnEdAdd").onclick=()=>pick(n=>{edEx.push({n,s:3,w:"10"});edRender()});
+$("btnEdZurueck").onclick=home;
+$("btnEdSave").onclick=()=>{
+  const name=$("edName").value.trim();if(!name){$("edName").focus();return}
+  const v={id:edIdx>=0?vorlagen()[edIdx].id:"v"+Date.now(),name,art:$("edArt").value,cardio:+$("edCardio").value||0,ex:$("edArt").value==="kraft"?edEx:[]};
+  const vl=vorlagen();if(edIdx>=0)vl[edIdx]=v;else vl.push(v);setVorlagen(vl);home();
+};
+$("btnEdDel").onclick=()=>{if(confirm("Vorlage löschen?")){const vl=vorlagen();vl.splice(edIdx,1);setVorlagen(vl);home()}};
+
+/* ===== Übung wählen ===== */
+let pickCb=null;
+function pick(cb){pickCb=cb;$("pickQ").value="";pickRender();$("pick").classList.add("on");setTimeout(()=>$("pickQ").focus(),50)}
+function pickRender(){
+  const q=$("pickQ").value.trim().toLowerCase();
+  const eigene=S.get(K("eigene"),[]).map(n=>({n,g:"Eigene"}));
+  const l=[...eigene,...ALLE].filter(x=>!q||x.n.toLowerCase().includes(q));
+  let html=l.slice(0,60).map(x=>`<div class="item" data-n="${esc(x.n)}"><span>${esc(x.n)}</span><small>${x.g}</small></div>`).join("");
+  if(q&&!l.some(x=>x.n.toLowerCase()===q))html=`<div class="item" data-neu="1"><span>„${esc($("pickQ").value.trim())}“ als eigene Übung</span><small>+</small></div>`+html;
+  $("pickList").innerHTML=html;
+}
+$("pickQ").oninput=pickRender;
+$("pickZu").onclick=()=>$("pick").classList.remove("on");
+$("pickList").onclick=e=>{
+  const it=e.target.closest(".item");if(!it)return;let n=it.dataset.n;
+  if(it.dataset.neu){n=$("pickQ").value.trim();const eg=S.get(K("eigene"),[]);if(!eg.includes(n)){eg.push(n);S.set(K("eigene"),eg)}}
+  $("pick").classList.remove("on");pickCb&&pickCb(n);
+};
+
+/* ===== Training ===== */
+let T=null,clockT=null;
+function letzte(n){return (S.get(K("letzte"),{}))[n]||null}
+function startTraining(v){
+  audio();
+  T={name:v.name,art:v.art,vorlage:v.id||"",start:isoLocal(new Date()),cardioPlan:v.cardio||0,
+     ex:(v.ex||[]).map(x=>{const l=letzte(x.n);return{n:x.n,sets:Array.from({length:x.s||3},(_,i)=>({kg:l&&l[i]?l[i].kg:(l&&l[0]?l[0].kg:""),wdh:l&&l[i]?l[i].wdh:(/^\d+$/.test(x.w)?x.w:""),ok:false}))}}),
+     cardio:{art:"Rad",min:""},notiz:""};
+  S.set(K("aktiv"),T);runOpen();
+}
+function runOpen(){
+  $("runName").textContent=T.name;$("runArt").textContent=T.art==="fechten"?"Fechten":T.art==="cardio"?"Cardio":"Krafttraining";
+  $("btnRunAdd").classList.toggle("hidden",T.art!=="kraft");
+  $("cardioCard").classList.toggle("hidden",T.art==="fechten");
+  $("cardioArt").value=T.cardio.art;$("cardioMin").value=T.cardio.min;$("cardioMin").placeholder=T.cardioPlan?`${T.cardioPlan} Min.`:"Min.";
+  $("runNotiz").value=T.notiz||"";
+  runRender();show("s-run");wakeOn();
+  clearInterval(clockT);clockT=setInterval(tick,500);tick();
+}
+function runRender(){
+  $("runEx").innerHTML=T.art==="fechten"?`<div class="card"><b>Fechtstunde läuft</b><div class="muted small">Am Ende „Training beenden“ – Dauer wird automatisch erfasst. Ort/Besonderes in die Notiz.</div></div>`:
+  T.ex.map((x,i)=>{const l=letzte(x.n);return `<div class="card ex"><div class="row"><h3 class="grow">${esc(x.n)}</h3><button class="ghost small" data-exdel="${i}">✕</button></div>
+   <div class="last">${l?"Letztes Mal: "+l.map(s=>`${s.wdh}×${s.kg||0}`).join(", "):"Neu"}</div>
+   <div class="head"><span>#</span><span>kg</span><span>Wdh.</span><span></span></div>
+   ${x.sets.map((s,j)=>`<div class="set${s.ok?" done":""}"><span class="nr">${j+1}</span><input inputmode="decimal" value="${esc(s.kg)}" data-i="${i}" data-j="${j}" data-k="kg" placeholder="kg"><input inputmode="numeric" value="${esc(s.wdh)}" data-i="${i}" data-j="${j}" data-k="wdh" placeholder="Wdh."><button data-ok="${i}:${j}">✓</button></div>`).join("")}
+   <div class="row"><button class="ghost small grow" data-addset="${i}">+ Satz</button>${x.sets.length>1?`<button class="ghost small" data-delset="${i}">− Satz</button>`:""}</div></div>`}).join("");
+}
+function save(){S.set(K("aktiv"),T)}
+$("runEx").oninput=e=>{const d=e.target.dataset;if(d.k){T.ex[d.i].sets[d.j][d.k]=e.target.value.replace(",",".");save()}};
+$("runEx").onclick=e=>{
+  const d=e.target.dataset;
+  if(d.ok){const[i,j]=d.ok.split(":").map(Number);const s=T.ex[i].sets[j];s.ok=!s.ok;
+    if(s.ok){const nx=T.ex[i].sets[j+1];if(nx&&!nx.kg)nx.kg=s.kg;if(nx&&!nx.wdh)nx.wdh=s.wdh;restStart()}
+    save();runRender();}
+  if(d.addset!==undefined){const x=T.ex[+d.addset];const l=x.sets[x.sets.length-1]||{kg:"",wdh:""};x.sets.push({kg:l.kg,wdh:l.wdh,ok:false});save();runRender()}
+  if(d.delset!==undefined){T.ex[+d.delset].sets.pop();save();runRender()}
+  if(d.exdel!==undefined&&confirm("Übung entfernen?")){T.ex.splice(+d.exdel,1);save();runRender()}
+};
+$("btnRunAdd").onclick=()=>pick(n=>{const l=letzte(n);T.ex.push({n,sets:Array.from({length:3},(_,i)=>({kg:l&&l[i]?l[i].kg:"",wdh:l&&l[i]?l[i].wdh:"",ok:false}))});save();runRender();window.scrollTo(0,document.body.scrollHeight)});
+$("cardioArt").onchange=()=>{T.cardio.art=$("cardioArt").value;save()};
+$("cardioMin").oninput=()=>{T.cardio.min=$("cardioMin").value;save()};
+$("runNotiz").oninput=()=>{T.notiz=$("runNotiz").value;save()};
+$("btnRunAbbruch").onclick=()=>{if(confirm("Training verwerfen? Es wird nichts gesendet.")){S.del(K("aktiv"));clearInterval(clockT);restStop();home()}};
+function tick(){const s=Math.max(0,Math.floor((Date.now()-new Date(T.start))/1000));$("runClock").textContent=`${s/3600|0?Math.floor(s/3600)+":":""}${pad(Math.floor(s/60)%60)}:${pad(s%60)}`.replace(/^0(\d:)/,"$1");restTick()}
+
+/* Pause */
+let restEnd=0;
+function restStart(){audio();restEnd=Date.now()+(+$("optPause").value||90)*1000;$("rest").classList.add("on");restTick()}
+function restStop(){restEnd=0;$("rest").classList.remove("on")}
+function restTick(){if(!restEnd)return;const r=Math.ceil((restEnd-Date.now())/1000);
+  if(r<=0){restStop();beep(660,.2);setTimeout(()=>beep(990,.3),200);say("Pause vorbei. Nächster Satz.");return}
+  if(r<=3&&r!==restTick.l){beep(880,.1)}restTick.l=r;$("restT").textContent=`${Math.floor(r/60)}:${pad(r%60)}`}
+$("restPlus").onclick=()=>{restEnd+=15000;restTick()};
+$("restMinus").onclick=()=>{restEnd-=15000;restTick()};
+$("restSkip").onclick=restStop;
+
+/* ===== Beenden & Senden ===== */
+function zusammenfassen(){
+  const ende=new Date(),start=new Date(T.start);
+  const dauer=Math.max(1,Math.round((ende-start)/60000));
+  const ex=T.ex.map(x=>({n:x.n,sets:x.sets.filter(s=>s.ok).map(s=>({kg:+s.kg||0,wdh:+s.wdh||0}))})).filter(x=>x.sets.length);
+  const cardio=+T.cardio.min?{art:T.cardio.art,min:+T.cardio.min}:null;
+  const art=T.art==="fechten"?"Fechten":ex.length?"Kraft":cardio?"Cardio":"Kraft";
+  const volumen=Math.round(ex.reduce((a,x)=>a+x.sets.reduce((b,s)=>b+s.kg*s.wdh,0),0));
+  const zeilen=[`${art}: ${T.name}, ${dauer} Min. (${hm(start)}–${hm(ende)})`];
+  ex.forEach(x=>zeilen.push(`- ${x.n}: ${x.sets.map(s=>`${s.wdh}×${s.kg}`).join(", ")}`));
+  if(cardio)zeilen.push(`- Cardio: ${cardio.min} Min. ${cardio.art}`);
+  if(T.notiz.trim())zeilen.push(`Notiz: ${T.notiz.trim()}`);
+  return {teilnehmer:wer,datum:T.start.slice(0,10),start:T.start,ende:isoLocal(ende),dauer,art,name:T.name,vorlage:T.vorlage,ex,cardio,volumen,notiz:T.notiz.trim(),text:zeilen.join("\n"),id:T.start+":"+wer};
+}
+$("btnFertig").onclick=()=>{
+  const offen=T.ex.reduce((a,x)=>a+x.sets.filter(s=>!s.ok).length,0);
+  if(offen&&T.art==="kraft"&&!confirm(`${offen} Sätze nicht abgehakt – die zählen nicht. Trotzdem beenden?`))return;
+  clearInterval(clockT);restStop();
+  const z=zusammenfassen();
+  const hist=S.get(K("hist"),[]);hist.push({id:z.id,name:z.name,datum:z.datum,dauer:z.dauer,gesendet:false});S.set(K("hist"),hist.slice(-60));
+  const le=S.get(K("letzte"),{});z.ex.forEach(x=>le[x.n]=x.sets);S.set(K("letzte"),le);
+  const q=S.get(K("queue"),[]);q.push(z);S.set(K("queue"),q);S.del(K("aktiv"));
+  $("endSub").textContent=`${z.art} · ${z.dauer} Min. · ${z.datum.slice(8,10)}.${z.datum.slice(5,7)}.`;
+  $("endSum").innerHTML=`<div><span class="muted">Übungen</span><b>${z.ex.length}</b></div><div><span class="muted">Sätze</span><b>${z.ex.reduce((a,x)=>a+x.sets.length,0)}</b></div><div><span class="muted">Volumen</span><b>${z.volumen.toLocaleString("de-AT")} kg</b></div><div><span class="muted">Cardio</span><b>${z.cardio?z.cardio.min+" Min.":"–"}</b></div>`;
+  $("endText").textContent=z.text;$("endStatus").innerHTML='<div class="warnbox">Wird an den Schiri gesendet …</div>';
+  show("s-end");flushQueue(true);
+};
+async function senden(z){
+  if(!FORM.url)throw new Error("noform");
+  const b=new URLSearchParams();
+  b.append(FORM.teilnehmer,z.teilnehmer);b.append(FORM.datum,z.datum);b.append(FORM.art,z.art);b.append(FORM.dauer,String(z.dauer));
+  b.append(FORM.text,z.text);b.append(FORM.daten,JSON.stringify(z));
+  await fetch(FORM.url,{method:"POST",mode:"no-cors",body:b});
+}
+let flushing=false;
+async function flushQueue(anzeigen){
+  if(flushing)return;flushing=true;
+  let q=S.get(K("queue"),[]),fehler=null;
+  while(q.length){try{await senden(q[0]);const id=q[0].id;q.shift();S.set(K("queue"),q);
+      const h=S.get(K("hist"),[]);h.forEach(x=>{if(x.id===id)x.gesendet=true});S.set(K("hist"),h)}
+    catch(e){fehler=e.message;break}}
+  flushing=false;
+  if(anzeigen)$("endStatus").innerHTML=!q.length?'<div class="okbox">✓ An den Schiri gesendet.</div>':
+    fehler==="noform"?'<div class="warnbox">Senden ist noch nicht eingerichtet. Das Training ist gespeichert und wird automatisch nachgesendet. Bis dahin: Text kopieren und dem Schiri schicken.</div>':
+    '<div class="warnbox">Kein Internet – gespeichert, wird beim nächsten Öffnen automatisch gesendet.</div>';
+}
+window.addEventListener("online",()=>flushQueue());
+$("btnKopie").onclick=async()=>{try{await navigator.clipboard.writeText($("endText").textContent);$("btnKopie").textContent="Kopiert ✓"}catch(e){$("btnKopie").textContent="Nicht möglich"}};
+$("btnHome").onclick=home;
+
+/* ===== Init ===== */
+if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
+home();
+</script>
+</body>
+</html>
