@@ -297,6 +297,8 @@ const START_NOAH = [
   {id:"fr",name:"Fr – Ganzkörper",art:"kraft",cardio:15,ex:[["Kniebeuge",3,"8"],["Bankdrücken (LH)",3,"8"],["Rudern (KH, einarmig)",3,"10"],["Schulterdrücken (KH)",3,"10"],["Plank (Sek.)",3,"45"]]},
   {id:"fe",name:"Fechten (Skalden)",art:"fechten",cardio:0,ex:[]}
 ];
+/* Extra-Block: Haltungs- und Rücken-Flow aus der Morgen-App, fürs Gym (vor oder nach dem Training, ca. 10–12 Min.) */
+const EXTRA_RUECKEN={id:"ru",name:"Extra – Haltung & Rücken",art:"kraft",cardio:0,ex:[["Chin Tucks (5 Sek. halten)",2,"10"],["Wall Angels",2,"10"],["Band Pull-Aparts",3,"15"],["Katze-Kuh",1,"45 Sek."],["Bird-Dog",2,"8/Seite"],["Open Book",2,"8/Seite"],["Dead Bug",2,"10"],["Glute Bridge",2,"12"],["Hüftbeuger-Dehnung",1,"40 Sek./Seite"]]};
 
 /* ===== Hilfen ===== */
 const $=id=>document.getElementById(id);
@@ -345,6 +347,7 @@ function renderHero(vl){
 function home(){
   if(!wer){show("s-wer");return}
   if(wer==="noah"&&!S.get(K("init"),false)){setVorlagen(START_NOAH.map(v=>({...v,ex:v.ex.map(([n,s,w])=>({n,s,w}))})));S.set(K("init"),true)}
+  if(wer==="noah"&&!S.get(K("extraRuecken"),false)){const vl=vorlagen();if(!vl.some(v=>v.id==="ru"))vl.push({...EXTRA_RUECKEN,ex:EXTRA_RUECKEN.ex.map(([n,s,w])=>({n,s,w}))});setVorlagen(vl);S.set(K("extraRuecken"),true)}
   $("hallo").textContent=wer==="noah"?"Servus Noah":"Servus Clemens";
   $("heute").textContent=new Date().toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"});
   const wd=["so","mo","di","mi","do","fr","sa"][new Date().getDay()];
