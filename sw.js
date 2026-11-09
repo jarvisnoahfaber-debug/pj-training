@@ -1,4 +1,4 @@
-const C="pj-training-v4",DBC="pj-db-v1";const FILES=["./","index.html","manifest.json","icon-180.png","icon-512.png"];
+const C="pj-training-v5",DBC="pj-db-v1";const FILES=["./","index.html","manifest.json","icon-180.png","icon-512.png"];
 const DBHOSTS=["cdn.jsdelivr.net","raw.githubusercontent.com"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(FILES)));self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C&&x!==DBC).map(x=>caches.delete(x)))));self.clients.claim()});
