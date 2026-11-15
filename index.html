@@ -330,7 +330,7 @@ function renderWoche(){
   const h=S.get(K("hist"),[]),d=new Date(),mo=new Date(d);mo.setDate(d.getDate()-((d.getDay()+6)%7));
   const tage=["Mo","Di","Mi","Do","Fr","Sa","So"];let n=0;
   $("woche").innerHTML=tage.map((t,k)=>{const x=new Date(mo);x.setDate(mo.getDate()+k);
-    const iso=`${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;const e=h.filter(y=>y.datum===iso);if(e.length)n++;
+    const iso=`${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;const e=h.filter(y=>y.datum===iso&&!y.nicht);if(e.length)n++;
     const heute=x.toDateString()===d.toDateString();
     return `<div class="${heute?"heute ":""}${e.length?"hat "+(e.some(y=>artKey(y.art)==="fechten")?"fechten":""):""}">${t}<b>${x.getDate()}</b><i></i></div>`}).join("");
   $("wochetxt").textContent=n?`${n} ${n===1?"Einheit":"Einheiten"} diese Woche`:"Diese Woche noch keine Einheit";
@@ -338,7 +338,7 @@ function renderWoche(){
 function renderHero(vl){
   const i=heuteVorlage(vl),wd=new Date().getDay();
   if(i>=0){const v=vl[i],a=artKey(v.art);
-    $("hero").innerHTML=`<div class="hero ${a}"><div class="lbl">Heute dran</div><div class="ttl">${ICON[a]} ${esc(v.name)}</div><div class="meta">${metaTxt(v)}</div>${v.ex.length?`<div class="ex-chips">${v.ex.slice(0,6).map(x=>`<span>${esc(x.n)}</span>`).join("")}</div>`:""}<button data-start="${i}">Training starten</button></div>`;
+    $("hero").innerHTML=`<div class="hero ${a}"><div class="lbl">Heute dran</div><div class="ttl">${ICON[a]} ${esc(v.name)}</div><div class="meta">${metaTxt(v)}</div>${v.ex.length?`<div class="ex-chips">${v.ex.slice(0,6).map(x=>`<span>${esc(x.n)}</span>`).join("")}</div>`:""}${a==="fechten"?`<div class="row" style="gap:8px"><button data-fok="${i}">✓ Erledigt</button><button data-fnicht="${i}" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)">✗ Nicht</button></div>`:`<button data-start="${i}">Training starten</button>`}</div>`;
   } else {
     $("hero").innerHTML=`<div class="hero ruhe"><div class="lbl">Heute</div><div class="ttl">${wd===0||wd===6?"😌 Ruhetag":"Kein Training geplant"}</div><div class="meta">${wd===0||wd===6?"Erholung gehört zum Plan. Lust auf mehr? Unten frei starten.":"Unten eine Vorlage wählen oder frei trainieren."}</div></div>`;
   }
@@ -353,7 +353,7 @@ function home(){
   const wd=["so","mo","di","mi","do","fr","sa"][new Date().getDay()];
   const vl=vorlagen();
   renderWoche();renderHero(vl);
-  $("tplList").innerHTML=vl.length?vl.map((v,i)=>{const a=artKey(v.art);return `<div class="card tpl ${a}"><div class="ico ${a}">${ICON[a]}</div><div class="grow"><b>${esc(v.name)}</b><div class="meta">${metaTxt(v)}</div></div><button class="ghost" data-edit="${i}">✎</button><button class="primary" data-start="${i}">Start</button></div>`}).join("")
+  $("tplList").innerHTML=vl.length?vl.map((v,i)=>{const a=artKey(v.art);return `<div class="card tpl ${a}"><div class="ico ${a}">${ICON[a]}</div><div class="grow"><b>${esc(v.name)}</b><div class="meta">${metaTxt(v)}</div></div><button class="ghost" data-edit="${i}">✎</button>${a==="fechten"?`<button class="primary" data-fok="${i}">✓</button><button class="ghost" data-fnicht="${i}">✗</button>`:`<button class="primary" data-start="${i}">Start</button>`}</div>`}).join("")
     :`<div class="card muted">Noch keine Vorlage. Lege deine Einheiten mit „+ Neue Vorlage“ an – einmalig, danach nur noch „Start“.</div>`;
   const akt=S.get(K("aktiv"),null);
   $("resumeBox").classList.toggle("hidden",!akt);
@@ -362,7 +362,7 @@ function home(){
   $("queueBox").classList.toggle("hidden",!q.length);
   $("queueBox").textContent=q.length?`${q.length} Training(s) noch nicht gesendet – wird automatisch nachgeholt, sobald Internet da ist.`:"";
   const h=S.get(K("hist"),[]).slice(-8).reverse();
-  $("verlauf").innerHTML=h.length?h.map(x=>{const a=artKey(x.art);return `<div class="vitem"><div class="ico ${a}">${ICON[a]}</div><div class="grow"><b>${esc(x.name)}</b><br><small>${new Date(x.datum+"T12:00").toLocaleDateString("de-AT",{weekday:"short",day:"numeric",month:"numeric"})} · ${x.dauer} Min.${x.saetze?" · "+x.saetze+" Sätze":""}</small></div><span class="${x.gesendet?"st-ok":"st-wait"}">${x.gesendet?"✓ beim Schiri":"⏳ wartet"}</span></div>`}).join(""):'<div class="muted small">Noch keine Einheit. Los geht\'s!</div>';
+  $("verlauf").innerHTML=h.length?h.map(x=>{const a=artKey(x.art);return `<div class="vitem"><div class="ico ${a}">${ICON[a]}</div><div class="grow"><b>${esc(x.name)}</b><br><small>${new Date(x.datum+"T12:00").toLocaleDateString("de-AT",{weekday:"short",day:"numeric",month:"numeric"})} · ${x.dauer} Min.${x.saetze?" · "+x.saetze+" Sätze":""}</small></div><span class="${x.nicht?"muted small":x.gesendet?"st-ok":"st-wait"}">${x.nicht?"✗ nicht stattgefunden":x.gesendet?"✓ beim Schiri":"⏳ wartet"}</span></div>`}).join(""):'<div class="muted small">Noch keine Einheit. Los geht\'s!</div>';
   $("optPause").value=String(S.get(K("pause"),90));$("optStimme").checked=S.get(K("stimme"),true);
   show("s-home");flushQueue();
 }
@@ -370,8 +370,8 @@ document.querySelectorAll("[data-wer]").forEach(b=>b.onclick=()=>{wer=b.dataset.
 $("btnWer").onclick=()=>{if(confirm("Teilnehmer wechseln?")){wer=null;S.del("wer");show("s-wer")}};
 $("optPause").onchange=()=>S.set(K("pause"),+$("optPause").value);
 $("optStimme").onchange=()=>S.set(K("stimme"),$("optStimme").checked);
-$("hero").onclick=e=>{const s=e.target.dataset.start;if(s!==undefined)startTraining(vorlagen()[+s])};
-$("tplList").onclick=e=>{const s=e.target.dataset.start,ed=e.target.dataset.edit;if(s!==undefined)startTraining(vorlagen()[+s]);if(ed!==undefined)edit(+ed)};
+$("hero").onclick=e=>{if(fechtKlick(e))return;const s=e.target.dataset.start;if(s!==undefined)startTraining(vorlagen()[+s])};
+$("tplList").onclick=e=>{if(fechtKlick(e))return;const s=e.target.dataset.start,ed=e.target.dataset.edit;if(s!==undefined)startTraining(vorlagen()[+s]);if(ed!==undefined)edit(+ed)};
 $("btnNeueVorlage").onclick=()=>edit(-1);
 $("btnFrei").onclick=()=>startTraining({name:"Freies Training",art:"kraft",cardio:0,ex:[]});
 $("btnResume").onclick=()=>{T=S.get(K("aktiv"));runOpen()};
@@ -449,6 +449,21 @@ $("pickList").onclick=e=>{
 /* ===== Training ===== */
 let T=null,clockT=null;
 function letzte(n){return (S.get(K("letzte"),{}))[n]||null}
+/* Fechten/Paukstunde: nur abhaken, kein laufender Timer */
+function fechtKlick(e){const d=e.target.dataset;
+  if(d.fok!==undefined){fechtErledigt(vorlagen()[+d.fok]);return true}
+  if(d.fnicht!==undefined){fechtNicht(vorlagen()[+d.fnicht]);return true}return false}
+function fechtErledigt(v){
+  const d=prompt("Paukstunde erledigt – wie lange? (Minuten)",S.get(K("fechtDauer"),60));if(d===null)return;
+  const m=Math.max(1,Math.min(300,parseInt(d,10)||60));S.set(K("fechtDauer"),m);
+  T={name:v.name,art:"fechten",vorlage:v.id||"",start:isoLocal(new Date(Date.now()-m*60000+30000)),cardioPlan:0,ex:[],cardio:{art:"Rad",min:""},notiz:""};
+  S.set(K("aktiv"),T);$("btnFertig").onclick();
+}
+function fechtNicht(v){
+  if(!confirm("Paukstunde heute nicht stattgefunden bzw. nicht dabei?"))return;
+  const d=isoLocal(new Date()).slice(0,10),hist=S.get(K("hist"),[]).filter(x=>!(x.nicht&&x.datum===d));
+  hist.push({id:d+":"+wer+":nicht",name:v.name,art:"Fechten",datum:d,dauer:0,saetze:0,gesendet:false,nicht:true});S.set(K("hist"),hist.slice(-60));home();
+}
 function startTraining(v){
   audio();
   T={name:v.name,art:v.art,vorlage:v.id||"",start:isoLocal(new Date()),cardioPlan:v.cardio||0,
