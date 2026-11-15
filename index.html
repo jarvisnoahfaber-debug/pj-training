@@ -160,6 +160,8 @@ h1{font-size:30px}
     <button class="grow" id="btnNeueVorlage">+ Neue Vorlage</button>
     <button class="grow" id="btnFrei">Freies Training</button>
   </div>
+  <div class="sec">Fortschritt</div>
+  <div class="card" id="fortschritt"></div>
   <div class="sec">Letzte Einheiten</div>
   <div class="card" id="verlauf"></div>
   <div class="sec">Einstellungen</div>
@@ -335,6 +337,18 @@ function renderWoche(){
     return `<div class="${heute?"heute ":""}${e.length?"hat "+(e.some(y=>artKey(y.art)==="fechten")?"fechten":""):""}">${t}<b>${x.getDate()}</b><i></i></div>`}).join("");
   $("wochetxt").textContent=n?`${n} ${n===1?"Einheit":"Einheiten"} diese Woche`:"Diese Woche noch keine Einheit";
 }
+function spark(p){if(!p.length)return"";const w=120,h=34,mn=Math.min(...p),mx=Math.max(...p),r=mx-mn||1;
+  const pt=p.map((v,i)=>[p.length>1?i/(p.length-1)*(w-6)+3:w/2,h-4-(v-mn)/r*(h-8)]);
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${p.length>1?`<polyline fill="none" stroke="var(--kraft)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" points="${pt.map(x=>x.join(",")).join(" ")}"/>`:""}<circle cx="${pt[pt.length-1][0]}" cy="${pt[pt.length-1][1]}" r="3.2" fill="var(--kraft)"/></svg>`}
+function kw(d){const x=new Date(d+"T12:00");x.setDate(x.getDate()-((x.getDay()+6)%7));return x.toISOString().slice(0,10)}
+function fortschrittRender(){const el=$("fortschritt");if(!el)return;const ve=S.get(K("exVerlauf"),{});
+  const haupt=["Bankdrücken (LH)","Latzug breit","Beinpresse","Schulterdrücken (KH)","Kabelrudern sitzend","Rumänisches Kreuzheben"];
+  const keys=[...haupt.filter(k=>ve[k]&&ve[k].length),...Object.keys(ve).filter(k=>!haupt.includes(k)&&ve[k].length)].slice(0,8);
+  if(!keys.length){el.innerHTML='<div class="muted small">Die Kurven erscheinen ab deinem nächsten Training: bestes Gewicht je Übung und Volumen pro Woche.</div>';return}
+  const vw={};Object.values(ve).flat().forEach(e=>{const k=kw(e.d);vw[k]=(vw[k]||0)+e.vol});const wk=Object.keys(vw).sort().slice(-8),mxv=Math.max(...wk.map(k=>vw[k]),1);
+  const bars=`<div class="small muted">Volumen pro Woche (kg × Wdh.)</div><div style="display:flex;align-items:flex-end;gap:6px;height:64px;margin:6px 0 14px">${wk.map(k=>`<div style="flex:1;text-align:center"><div style="height:${Math.max(3,vw[k]/mxv*48)}px;background:var(--kraft);border-radius:4px 4px 0 0;opacity:${k===wk[wk.length-1]?1:.55}"></div><div class="small muted" style="font-size:10px">${k.slice(8,10)}.${k.slice(5,7)}.</div></div>`).join("")}</div>`;
+  el.innerHTML=bars+keys.map(k=>{const a=ve[k],l=a[a.length-1],f=a[0],dlt=Math.round((l.kg-f.kg)*10)/10;
+    return `<div class="row" style="margin:8px 0;align-items:center"><div class="grow"><b style="font-size:15px">${esc(k)}</b><div class="small muted">${l.wdh} × ${String(l.kg).replace(".",",")} kg${a.length>1?` · ${dlt>0?"+":""}${String(dlt).replace(".",",")} kg seit ${f.d.slice(8,10)}.${f.d.slice(5,7)}.`:""}</div></div>${spark(a.map(e=>e.kg))}</div>`}).join("")}
 function renderHero(vl){
   const i=heuteVorlage(vl),wd=new Date().getDay();
   if(i>=0){const v=vl[i],a=artKey(v.art);
@@ -353,7 +367,7 @@ function home(){
   $("heute").textContent=new Date().toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"});
   const wd=["so","mo","di","mi","do","fr","sa"][new Date().getDay()];
   const vl=vorlagen();
-  renderWoche();renderHero(vl);
+  renderWoche();renderHero(vl);fortschrittRender();
   $("tplList").innerHTML=vl.length?vl.map((v,i)=>{const a=artKey(v.art);return `<div class="card tpl ${a}"><div class="ico ${a}">${ICON[a]}</div><div class="grow"><b>${esc(v.name)}</b><div class="meta">${metaTxt(v)}</div></div><button class="ghost" data-edit="${i}">✎</button>${a==="fechten"?`<button class="primary" data-fok="${i}">✓</button><button class="ghost" data-fnicht="${i}">✗</button>`:`<button class="primary" data-start="${i}">Start</button>`}</div>`}).join("")
     :`<div class="card muted">Noch keine Vorlage. Lege deine Einheiten mit „+ Neue Vorlage“ an – einmalig, danach nur noch „Start“.</div>`;
   const akt=S.get(K("aktiv"),null);
@@ -461,14 +475,26 @@ function fechtErledigt(v){
   S.set(K("aktiv"),T);$("btnFertig").onclick();
 }
 function fechtNicht(v){
-  if(!confirm("Paukstunde heute nicht stattgefunden bzw. nicht dabei?"))return;
-  const d=isoLocal(new Date()).slice(0,10),hist=S.get(K("hist"),[]).filter(x=>!(x.nicht&&x.datum===d));
-  hist.push({id:d+":"+wer+":nicht",name:v.name,art:"Fechten",datum:d,dauer:0,saetze:0,gesendet:false,nicht:true});S.set(K("hist"),hist.slice(-60));home();
+  const o=document.createElement("div");o.className="overlay on";
+  o.innerHTML=`<h1 style="margin-top:20px">Paukstunde nicht</h1><div class="muted">Warum? Geht als Ausnahme-Hinweis an den Schiri.</div><div style="display:grid;gap:10px;margin-top:18px">${["Kein Fechtbetrieb","Auswärts","Krank","Anderer Grund"].map(g=>`<button data-g="${g}">${g}</button>`).join("")}<button class="ghost" data-g="">Abbrechen</button></div>`;
+  document.body.appendChild(o);
+  o.onclick=e=>{let g=e.target.dataset.g;if(g===undefined)return;o.remove();if(!g)return;if(g==="Anderer Grund"){g=(prompt("Grund?")||"").trim();if(!g)return}fechtAusfall(v,g)};
 }
+function fechtAusfall(v,g){
+  const j=new Date(),d=isoLocal(j).slice(0,10),id=isoLocal(j)+":"+wer+":ausfall";
+  const z={teilnehmer:wer,datum:d,start:isoLocal(j),ende:isoLocal(j),dauer:0,art:"Ausfall",name:v.name,vorlage:v.id||"",ex:[],cardio:null,volumen:0,notiz:g,grund:g,text:`Ausfall: ${v.name} – ${g}`,id};
+  const q=S.get(K("queue"),[]);q.push(z);S.set(K("queue"),q);
+  const hist=S.get(K("hist"),[]).filter(x=>!(x.nicht&&x.datum===d));hist.push({id,name:v.name+" – "+g,art:"Fechten",datum:d,dauer:0,saetze:0,gesendet:false,nicht:true});S.set(K("hist"),hist.slice(-60));home();
+}
+/* Progression: letztes Mal alle Sätze mit Ziel-Wdh. geschafft -> mehr Gewicht vorschlagen */
+function steigerung(x,l){const z=parseInt(x.w,10);if(!l||!l.length||!/^\d+$/.test(String(x.w))||l.length<(x.s||3))return 0;
+  if(!l.every(s=>+s.kg>0&&+s.wdh>=z))return 0;return /KH/.test(x.n)?2:2.5}
+function exBau(x){const l=letzte(x.n),up=steigerung(x,l),ziel=/^\d+$/.test(String(x.w))?String(x.w):"";
+  return{n:x.n,up,sets:Array.from({length:x.s||3},(_,i)=>{const b=l&&(l[i]||l[0]);return{kg:b?(up?String(Math.round((+b.kg+up)*10)/10):b.kg):"",wdh:up?ziel:(b?b.wdh:ziel),ok:false}})}}
 function startTraining(v){
   audio();
   T={name:v.name,art:v.art,vorlage:v.id||"",start:isoLocal(new Date()),cardioPlan:v.cardio||0,
-     ex:(v.ex||[]).map(x=>{const l=letzte(x.n);return{n:x.n,sets:Array.from({length:x.s||3},(_,i)=>({kg:l&&l[i]?l[i].kg:(l&&l[0]?l[0].kg:""),wdh:l&&l[i]?l[i].wdh:(/^\d+$/.test(x.w)?x.w:""),ok:false}))}}),
+     ex:(v.ex||[]).map(exBau),
      cardio:{art:"Rad",min:""},notiz:""};
   S.set(K("aktiv"),T);runOpen();
 }
@@ -484,7 +510,7 @@ function runOpen(){
 function runRender(){
   $("runEx").innerHTML=T.art==="fechten"?`<div class="card"><b>Fechtstunde läuft</b><div class="muted small">Am Ende „Training beenden“ – Dauer wird automatisch erfasst. Ort/Besonderes in die Notiz.</div></div>`:
   T.ex.map((x,i)=>{const l=letzte(x.n),fertig=x.sets.length&&x.sets.every(s=>s.ok),nx=x.sets.findIndex(s=>!s.ok);return `<div class="card ex${fertig?" fertig":""}"><div class="row"><h3 class="grow"><span class="badge">${fertig?"✓":i+1}</span>${esc(x.n)}</h3>${dbId(x.n)?`<img class="thumb" data-anim="${esc(dbId(x.n))}" src="${bild(dbId(x.n))}" alt="" data-info="${esc(dbId(x.n))}" data-de="${esc(x.n)}">`:""}<button class="ghost small" data-exdel="${i}">✕</button></div>
-   <div class="last">${l?"Letztes Mal: "+l.map(s=>`${s.wdh}×${s.kg||0}`).join(", "):"Neu"}</div>
+   <div class="last">${l?"Letztes Mal: "+l.map(s=>`${s.wdh}×${s.kg||0}`).join(", "):"Neu"}${x.up?`<br><b class="st-ok">↑ +${String(x.up).replace(".",",")} kg – letztes Mal alle Sätze geschafft</b>`:""}</div>
    <div class="head"><span>#</span><span>kg</span><span>Wdh.</span><span></span></div>
    ${x.sets.map((s,j)=>`<div class="set${s.ok?" done":""}${j===nx?" next":""}"><span class="nr">${j+1}</span><input inputmode="decimal" value="${esc(s.kg)}" data-i="${i}" data-j="${j}" data-k="kg" placeholder="kg"><input inputmode="numeric" value="${esc(s.wdh)}" data-i="${i}" data-j="${j}" data-k="wdh" placeholder="Wdh."><button data-ok="${i}:${j}">✓</button></div>`).join("")}
    <div class="row"><button class="ghost small grow" data-addset="${i}">+ Satz</button>${x.sets.length>1?`<button class="ghost small" data-delset="${i}">− Satz</button>`:""}</div></div>`}).join("");
@@ -544,6 +570,8 @@ $("btnFertig").onclick=()=>{
   const z=zusammenfassen();
   const hist=S.get(K("hist"),[]);hist.push({id:z.id,name:z.name,art:z.art,datum:z.datum,dauer:z.dauer,saetze:z.ex.reduce((a,x)=>a+x.sets.length,0),gesendet:false});S.set(K("hist"),hist.slice(-60));
   const le=S.get(K("letzte"),{});z.ex.forEach(x=>le[x.n]=x.sets);S.set(K("letzte"),le);
+  const ve=S.get(K("exVerlauf"),{});z.ex.forEach(x=>{const top=x.sets.reduce((m,s)=>s.kg>m.kg||(s.kg===m.kg&&s.wdh>m.wdh)?s:m,{kg:0,wdh:0});
+    (ve[x.n]=ve[x.n]||[]).push({d:z.datum,kg:top.kg,wdh:top.wdh,vol:Math.round(x.sets.reduce((a,s)=>a+s.kg*s.wdh,0))});ve[x.n]=ve[x.n].slice(-40)});S.set(K("exVerlauf"),ve);
   const q=S.get(K("queue"),[]);q.push(z);S.set(K("queue"),q);S.del(K("aktiv"));
   $("endSub").textContent=`${z.art} · ${z.dauer} Min. · ${z.datum.slice(8,10)}.${z.datum.slice(5,7)}.`;
   $("endSum").innerHTML=`<div class="tile a"><div class="v">${z.dauer}<small style="font-size:15px"> Min.</small></div><div class="l">Dauer</div></div><div class="tile b"><div class="v">${z.ex.reduce((a,x)=>a+x.sets.length,0)}</div><div class="l">Sätze · ${z.ex.length} Übungen</div></div><div class="tile c"><div class="v">${z.volumen.toLocaleString("de-AT")}<small style="font-size:15px"> kg</small></div><div class="l">bewegtes Gewicht</div></div><div class="tile d"><div class="v">${z.cardio?z.cardio.min:"–"}<small style="font-size:15px">${z.cardio?" Min.":""}</small></div><div class="l">Cardio${z.cardio?" · "+z.cardio.art:""}</div></div>`;
