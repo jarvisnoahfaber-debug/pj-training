@@ -152,6 +152,7 @@ h1{font-size:30px}
   <div id="resumeBox" class="card hidden">
     <div>Laufendes Training: <b id="resumeName"></b> seit <span id="resumeZeit"></span></div>
     <div class="row" style="margin-top:8px"><button class="primary grow" id="btnResume">Fortsetzen</button><button class="danger" id="btnVerwerfen">Verwerfen</button></div>
+    <div id="resumeAlt" class="warnbox hidden" style="margin-top:8px">Läuft schon über 2 Stunden – vergessen zu beenden?<button class="primary" id="btnEndeAlt" style="width:100%;margin-top:8px">Mit Endzeit beenden</button></div>
   </div>
   <div id="queueBox" class="warnbox hidden"></div>
   <div class="sec">Deine Vorlagen</div>
@@ -168,6 +169,7 @@ h1{font-size:30px}
   <div class="card">
     <div class="row"><span class="grow">Pause zwischen Sätzen</span><select id="optPause" style="width:110px"><option>60</option><option>90</option><option>120</option><option>150</option><option>180</option></select><span class="small muted">Sek.</span></div>
     <div class="row" style="margin-top:8px"><span class="grow">Ansage am Pausenende</span><input type="checkbox" id="optStimme" style="width:24px;height:24px"></div>
+    <div class="row" style="margin-top:8px"><span class="grow">Aufwärmsätze vor der ersten Übung</span><input type="checkbox" id="optWarm" style="width:24px;height:24px"></div>
   </div>
 </section>
 
@@ -373,18 +375,23 @@ function home(){
   const akt=S.get(K("aktiv"),null);
   $("resumeBox").classList.toggle("hidden",!akt);
   if(akt){$("resumeName").textContent=akt.name;$("resumeZeit").textContent=hm(new Date(akt.start))}
+  $("resumeAlt").classList.toggle("hidden",!(akt&&Date.now()-new Date(akt.start)>2*3600e3));
   const q=S.get(K("queue"),[]);
   $("queueBox").classList.toggle("hidden",!q.length);
   $("queueBox").textContent=q.length?`${q.length} Training(s) noch nicht gesendet – wird automatisch nachgeholt, sobald Internet da ist.`:"";
   const h=S.get(K("hist"),[]).slice(-8).reverse();
   $("verlauf").innerHTML=h.length?h.map(x=>{const a=artKey(x.art);return `<div class="vitem"><div class="ico ${a}">${ICON[a]}</div><div class="grow"><b>${esc(x.name)}</b><br><small>${new Date(x.datum+"T12:00").toLocaleDateString("de-AT",{weekday:"short",day:"numeric",month:"numeric"})} · ${x.dauer} Min.${x.saetze?" · "+x.saetze+" Sätze":""}</small></div><span class="${x.nicht?"muted small":x.gesendet?"st-ok":"st-wait"}">${x.nicht?"✗ nicht stattgefunden":x.gesendet?"✓ beim Schiri":"⏳ wartet"}</span></div>`}).join(""):'<div class="muted small">Noch keine Einheit. Los geht\'s!</div>';
-  $("optPause").value=String(S.get(K("pause"),90));$("optStimme").checked=S.get(K("stimme"),true);
+  $("optPause").value=String(S.get(K("pause"),90));$("optStimme").checked=S.get(K("stimme"),true);$("optWarm").checked=S.get(K("warm"),false);
   show("s-home");flushQueue();
 }
 document.querySelectorAll("[data-wer]").forEach(b=>b.onclick=()=>{wer=b.dataset.wer;S.set("wer",wer);home()});
 $("btnWer").onclick=()=>{if(confirm("Teilnehmer wechseln?")){wer=null;S.del("wer");show("s-wer")}};
 $("optPause").onchange=()=>S.set(K("pause"),+$("optPause").value);
 $("optStimme").onchange=()=>S.set(K("stimme"),$("optStimme").checked);
+$("btnEndeAlt").onclick=()=>{const a=S.get(K("aktiv"),null);if(!a)return;const s=new Date(a.start);
+  const v=prompt("Wann warst du fertig? (HH:MM, Start war "+s.toLocaleDateString("de-AT")+" "+hm(s)+")",hm(new Date(s.getTime()+3600e3)));if(v===null)return;
+  const m=v.match(/(\d{1,2})[:.](\d{2})/);if(!m)return;const e=new Date(s);e.setHours(+m[1],+m[2],0,0);if(e<=s)e.setDate(e.getDate()+1);T=a;T.endeFix=e.toISOString();$("btnFertig").onclick()};
+$("optWarm").onchange=()=>S.set(K("warm"),$("optWarm").checked);
 $("hero").onclick=e=>{if(fechtKlick(e))return;const s=e.target.dataset.start;if(s!==undefined)startTraining(vorlagen()[+s])};
 $("tplList").onclick=e=>{if(fechtKlick(e))return;const s=e.target.dataset.start,ed=e.target.dataset.edit;if(s!==undefined)startTraining(vorlagen()[+s]);if(ed!==undefined)edit(+ed)};
 $("btnNeueVorlage").onclick=()=>edit(-1);
@@ -496,6 +503,8 @@ function startTraining(v){
   T={name:v.name,art:v.art,vorlage:v.id||"",start:isoLocal(new Date()),cardioPlan:v.cardio||0,
      ex:(v.ex||[]).map(exBau),
      cardio:{art:"Rad",min:""},notiz:""};
+  if(S.get(K("warm"),false)&&T.art==="kraft"){const x=T.ex.find(e=>e.sets.length&&+e.sets[0].kg>0);
+    if(x){const kg=+x.sets[0].kg,r=v=>Math.max(0,Math.round(v/2.5)*2.5);x.sets.unshift({kg:String(r(kg*.5)),wdh:"10",ok:false,warm:true},{kg:String(r(kg*.7)),wdh:"5",ok:false,warm:true})}}
   S.set(K("aktiv"),T);runOpen();
 }
 function runOpen(){
@@ -512,7 +521,7 @@ function runRender(){
   T.ex.map((x,i)=>{const l=letzte(x.n),fertig=x.sets.length&&x.sets.every(s=>s.ok),nx=x.sets.findIndex(s=>!s.ok);return `<div class="card ex${fertig?" fertig":""}"><div class="row"><h3 class="grow"><span class="badge">${fertig?"✓":i+1}</span>${esc(x.n)}</h3>${dbId(x.n)?`<img class="thumb" data-anim="${esc(dbId(x.n))}" src="${bild(dbId(x.n))}" alt="" data-info="${esc(dbId(x.n))}" data-de="${esc(x.n)}">`:""}<button class="ghost small" data-exdel="${i}">✕</button></div>
    <div class="last">${l?"Letztes Mal: "+l.map(s=>`${s.wdh}×${s.kg||0}`).join(", "):"Neu"}${x.up?`<br><b class="st-ok">↑ +${String(x.up).replace(".",",")} kg – letztes Mal alle Sätze geschafft</b>`:""}</div>
    <div class="head"><span>#</span><span>kg</span><span>Wdh.</span><span></span></div>
-   ${x.sets.map((s,j)=>`<div class="set${s.ok?" done":""}${j===nx?" next":""}"><span class="nr">${j+1}</span><input inputmode="decimal" value="${esc(s.kg)}" data-i="${i}" data-j="${j}" data-k="kg" placeholder="kg"><input inputmode="numeric" value="${esc(s.wdh)}" data-i="${i}" data-j="${j}" data-k="wdh" placeholder="Wdh."><button data-ok="${i}:${j}">✓</button></div>`).join("")}
+   ${x.sets.map((s,j)=>`<div class="set${s.ok?" done":""}${j===nx?" next":""}" style="${s.warm?"opacity:.6":""}"><span class="nr">${s.warm?"A":j+1-x.sets.filter((q,k)=>k<j&&q.warm).length}</span><input inputmode="decimal" value="${esc(s.kg)}" data-i="${i}" data-j="${j}" data-k="kg" placeholder="kg"><input inputmode="numeric" value="${esc(s.wdh)}" data-i="${i}" data-j="${j}" data-k="wdh" placeholder="Wdh."><button data-ok="${i}:${j}">✓</button></div>`).join("")}
    <div class="row"><button class="ghost small grow" data-addset="${i}">+ Satz</button>${x.sets.length>1?`<button class="ghost small" data-delset="${i}">− Satz</button>`:""}</div></div>`}).join("");
   const ges=T.ex.reduce((a,x)=>a+x.sets.length,0),ok=T.ex.reduce((a,x)=>a+x.sets.filter(s=>s.ok).length,0),exf=T.ex.filter(x=>x.sets.length&&x.sets.every(s=>s.ok)).length;
   $("runStat").textContent=T.art==="fechten"?"Fechtstunde – Zeit läuft":`${exf}/${T.ex.length} Übungen · ${ok}/${ges} Sätze erledigt`;
@@ -551,9 +560,9 @@ $("restSkip").onclick=restStop;
 
 /* ===== Beenden & Senden ===== */
 function zusammenfassen(){
-  const ende=new Date(),start=new Date(T.start);
+  const ende=T.endeFix?new Date(T.endeFix):new Date(),start=new Date(T.start);
   const dauer=Math.max(1,Math.round((ende-start)/60000));
-  const ex=T.ex.map(x=>({n:x.n,sets:x.sets.filter(s=>s.ok).map(s=>({kg:+s.kg||0,wdh:+s.wdh||0}))})).filter(x=>x.sets.length);
+  const ex=T.ex.map(x=>({n:x.n,sets:x.sets.filter(s=>s.ok&&!s.warm).map(s=>({kg:+s.kg||0,wdh:+s.wdh||0}))})).filter(x=>x.sets.length);
   const cardio=+T.cardio.min?{art:T.cardio.art,min:+T.cardio.min}:null;
   const art=T.art==="fechten"?"Fechten":ex.length?"Kraft":cardio?"Cardio":"Kraft";
   const volumen=Math.round(ex.reduce((a,x)=>a+x.sets.reduce((b,s)=>b+s.kg*s.wdh,0),0));
@@ -569,11 +578,14 @@ $("btnFertig").onclick=()=>{
   clearInterval(clockT);restStop();
   const z=zusammenfassen();
   const hist=S.get(K("hist"),[]);hist.push({id:z.id,name:z.name,art:z.art,datum:z.datum,dauer:z.dauer,saetze:z.ex.reduce((a,x)=>a+x.sets.length,0),gesendet:false});S.set(K("hist"),hist.slice(-60));
+  const veAlt=S.get(K("exVerlauf"),{}),pr=[];z.ex.forEach(x=>{const a=veAlt[x.n]||[];if(!a.length)return;const top=x.sets.reduce((m,s)=>s.kg>m.kg||(s.kg===m.kg&&s.wdh>m.wdh)?s:m,{kg:0,wdh:0});
+    const bk=Math.max(...a.map(e=>e.kg)),bw=Math.max(0,...a.filter(e=>e.kg===top.kg).map(e=>e.wdh));if(top.kg>bk||(top.kg===bk&&top.wdh>bw))pr.push(`${x.n}: ${String(top.kg).replace(".",",")} kg × ${top.wdh}`)});
   const le=S.get(K("letzte"),{});z.ex.forEach(x=>le[x.n]=x.sets);S.set(K("letzte"),le);
   const ve=S.get(K("exVerlauf"),{});z.ex.forEach(x=>{const top=x.sets.reduce((m,s)=>s.kg>m.kg||(s.kg===m.kg&&s.wdh>m.wdh)?s:m,{kg:0,wdh:0});
     (ve[x.n]=ve[x.n]||[]).push({d:z.datum,kg:top.kg,wdh:top.wdh,vol:Math.round(x.sets.reduce((a,s)=>a+s.kg*s.wdh,0))});ve[x.n]=ve[x.n].slice(-40)});S.set(K("exVerlauf"),ve);
   const q=S.get(K("queue"),[]);q.push(z);S.set(K("queue"),q);S.del(K("aktiv"));
   $("endSub").textContent=`${z.art} · ${z.dauer} Min. · ${z.datum.slice(8,10)}.${z.datum.slice(5,7)}.`;
+  {let pe=$("endPR");if(!pe){pe=document.createElement("div");pe.id="endPR";$("endSum").after(pe)}pe.innerHTML=pr.length?`<div class="okbox" style="margin-top:10px">🏆 Neuer Rekord!<br>${pr.map(esc).join("<br>")}</div>`:"";}
   $("endSum").innerHTML=`<div class="tile a"><div class="v">${z.dauer}<small style="font-size:15px"> Min.</small></div><div class="l">Dauer</div></div><div class="tile b"><div class="v">${z.ex.reduce((a,x)=>a+x.sets.length,0)}</div><div class="l">Sätze · ${z.ex.length} Übungen</div></div><div class="tile c"><div class="v">${z.volumen.toLocaleString("de-AT")}<small style="font-size:15px"> kg</small></div><div class="l">bewegtes Gewicht</div></div><div class="tile d"><div class="v">${z.cardio?z.cardio.min:"–"}<small style="font-size:15px">${z.cardio?" Min.":""}</small></div><div class="l">Cardio${z.cardio?" · "+z.cardio.art:""}</div></div>`;
   $("endText").textContent=z.text;$("endStatus").innerHTML='<div class="warnbox">Wird an den Schiri gesendet …</div>';
   show("s-end");flushQueue(true);
