@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="PJ Training">
-<meta name="theme-color" content="#0f1115">
+<meta name="theme-color" content="#f5f5f7">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.json">
 <title>PJ Training</title>
@@ -131,6 +131,68 @@ h1{font-size:30px}
 .tags span{font-size:13px;background:var(--surface2);border-radius:999px;padding:4px 10px}
 .tags span.p{background:#1f2a4a;color:#c9d6ff}
 #infoSteps li{margin:6px 0;color:#cfd5dc}
+/* ===== Apple Design System (hell) ===== */
+:root{--bg:#f5f5f7;--surface:#ffffff;--surface2:#f5f5f7;--text:#1d1d1f;--muted:#7a7a7a;--accent:#0066cc;--ok:#34c759;--warn:#ff9500;--danger:#ff3b30;
+  --sep:#e0e0e0;--soft:#f0f0f0;--kraft:#0066cc;--fechten:#ff9500;--cardio:#34c759;--ink80:#333333}
+html,body{background:var(--bg);color:var(--text);font:17px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Helvetica Neue",sans-serif}
+h1{font-size:40px;font-weight:700;letter-spacing:-.8px;margin:24px 0 4px}
+h2{font-weight:700}
+.card{background:var(--surface);border:1px solid var(--sep);border-radius:14px;padding:20px;box-shadow:none}
+.sec,.dbhead{font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
+button{background:var(--surface2);color:var(--text);border-radius:999px;font-weight:400;box-shadow:none;transition:transform .15s ease-out}
+button:active{transform:scale(.95)}
+button.primary,button.ok{background:var(--accent);color:#fff;font-weight:400}
+button.ghost{background:transparent;color:var(--accent)}
+button.danger{background:transparent;color:var(--danger)}
+button:disabled{opacity:.5}
+input,select,textarea{background:var(--surface);color:var(--text);border:1px solid var(--sep);border-radius:10px}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--accent)}
+.bar{background:linear-gradient(rgba(245,245,247,0),var(--bg) 30%)}
+/* Hero: flache Fläche statt Verlauf */
+.hero,.hero.fechten,.hero.cardio,.hero.ruhe{background:var(--surface);border:1px solid var(--sep);border-radius:14px;padding:20px;color:var(--text)}
+.hero .lbl{font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;opacity:1;color:var(--accent)}
+.hero .ttl{font-size:28px;font-weight:700}
+.hero .meta{opacity:1;color:var(--muted)}
+.hero .ex-chips span{background:var(--surface2);color:var(--text);font-size:13px}
+.hero button{background:var(--accent);color:#fff;font-weight:400;font-size:17px;border-radius:999px}
+.hero button[data-fnicht]{background:transparent!important;color:var(--accent)!important;border:1px solid var(--accent)!important}
+.ico,.ico.kraft,.ico.fechten,.ico.cardio,.vitem .ico{background:var(--surface2)}
+.tpl,.tpl.fechten,.tpl.cardio{border-left:1px solid var(--sep)}
+.tpl .meta,.vitem small,.last,.head,.list .item small{color:var(--muted)}
+.woche div{background:var(--surface);border:1px solid var(--sep);border-radius:14px}
+.woche div b{color:var(--text);font-weight:600}
+.woche .heute{outline:0;border:2px solid var(--focus,#0071e3)}
+.woche .hat i{background:var(--accent)}
+.woche .hat.fechten i{background:var(--warn)}
+/* Training */
+.runhead{background:rgba(245,245,247,.96);border-bottom:1px solid var(--sep)}
+.prog{background:var(--sep)}
+.prog i{background:var(--accent)}
+.ex{border-left:1px solid var(--sep)}
+.ex.fertig{border:2px solid var(--ok);opacity:1}
+.badge{background:var(--surface2);color:var(--text);font-weight:600}
+.ex.fertig .badge{background:var(--ok);color:#fff}
+.set .nr{font-weight:600}
+.set.done input{background:#eaf8ee}
+.set.done button{background:var(--ok);color:#fff}
+.set.next input{box-shadow:none;border-color:var(--accent)}
+.set.next .nr{color:var(--accent)}
+.rest{background:var(--surface);border:1px solid var(--sep);color:var(--text)}
+.restfill{background:var(--accent)}
+.list .item,.vitem,.sum div{border-bottom:1px solid var(--soft)}
+.pill,.tags span,.chip{background:var(--surface2);color:var(--text)}
+.chip.on{background:var(--accent);color:#fff;font-weight:400}
+.tags span.p{background:#e8f1fb;color:var(--accent)}
+.pk .grow b{font-weight:400}
+.th.leer{background:var(--surface2)}
+.animbox{border:1px solid var(--sep);border-radius:14px}
+#infoSteps li{color:var(--ink80)}
+/* Kacheln & Hinweise */
+.tile,.tile.a,.tile.b,.tile.c,.tile.d{background:var(--surface);border:1px solid var(--sep);border-radius:14px}
+.tile .l{opacity:1;color:var(--muted)}
+.warnbox{background:#fff4e5;color:#8a5300;border-radius:14px}
+.okbox{background:#eaf8ee;color:#1e7a3a;border-radius:14px}
+.overlay{background:var(--bg)}
 </style>
 </head>
 <body>
