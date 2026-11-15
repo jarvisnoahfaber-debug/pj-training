@@ -292,9 +292,9 @@ function infoOeffnen(id,nameDe){
 /* Vorläufige Vorlagen für Noah (Plan: Mo Drücken, Di Ziehen + 2 Beinübungen, Fr Ganzkörper, je 45 Min. Kraft + 15 Min. Cardio; Mi/Do Fechten).
    Übungen sind Platzhalter, bis Noahs abgegebener Plan eingesetzt ist – in der App frei änderbar. */
 const START_NOAH = [
-  {id:"mo",name:"Mo – Drücken",art:"kraft",cardio:15,ex:[["Bankdrücken (LH)",4,"8"],["Schrägbankdrücken (KH)",3,"10"],["Schulterdrücken (KH)",3,"10"],["Seitheben (KH)",3,"12"],["Trizepsdrücken (Kabel)",3,"12"]]},
-  {id:"di",name:"Di – Ziehen + Beine",art:"kraft",cardio:15,ex:[["Klimmzüge",4,"max"],["Rudern (LH)",3,"8"],["Latzug eng",3,"10"],["Bizepscurls (KH)",3,"12"],["Beinpresse",3,"10"],["Rumänisches Kreuzheben",3,"10"]]},
-  {id:"fr",name:"Fr – Ganzkörper",art:"kraft",cardio:15,ex:[["Kniebeuge",3,"8"],["Bankdrücken (LH)",3,"8"],["Rudern (KH, einarmig)",3,"10"],["Schulterdrücken (KH)",3,"10"],["Plank (Sek.)",3,"45"]]},
+  {id:"mo",name:"Mo – Drücken + Haltung",art:"kraft",cardio:15,ex:[["Bankdrücken (LH)",4,"8"],["Schrägbankdrücken (KH)",3,"10"],["Schulterdrücken (KH)",3,"10"],["Seitheben (KH)",3,"12"],["Trizepsdrücken (Kabel)",3,"12"],["Face Pulls",3,"15"],["Reverse Butterfly",2,"15"]]},
+  {id:"di",name:"Di – Ziehen + Beine",art:"kraft",cardio:15,ex:[["Latzug breit",4,"10"],["Rudern (LH)",3,"8"],["Face Pulls",3,"15"],["Bizepscurls (KH)",3,"12"],["Beinpresse",3,"10"],["Rumänisches Kreuzheben",3,"10"]]},
+  {id:"fr",name:"Fr – Ganzkörper",art:"kraft",cardio:15,ex:[["Beinpresse",3,"10"],["Beinbeuger sitzend",3,"12"],["Bankdrücken (KH)",3,"10"],["Kabelrudern sitzend",3,"10"],["Schulterdrücken (KH)",3,"10"],["Face Pulls",3,"15"],["Hyperextensions",2,"12"],["Kabel-Crunch",3,"15"]]},
   {id:"fe",name:"Fechten (Skalden)",art:"fechten",cardio:0,ex:[]}
 ];
 /* Extra-Block: Haltungs- und Rücken-Flow aus der Morgen-App, fürs Gym (vor oder nach dem Training, ca. 10–12 Min.) */
@@ -347,6 +347,7 @@ function renderHero(vl){
 function home(){
   if(!wer){show("s-wer");return}
   if(wer==="noah"&&!S.get(K("init"),false)){setVorlagen(START_NOAH.map(v=>({...v,ex:v.ex.map(([n,s,w])=>({n,s,w}))})));S.set(K("init"),true)}
+  if(wer==="noah"&&!S.get(K("plan2"),false)){const vl=vorlagen();START_NOAH.filter(v=>["mo","di","fr"].includes(v.id)).forEach(v=>{const n={...v,ex:v.ex.map(([n,s,w])=>({n,s,w}))},i=vl.findIndex(x=>x.id===v.id);if(i>=0)vl[i]=n;else vl.push(n)});setVorlagen(vl);S.set(K("plan2"),true)}
   if(wer==="noah"&&!S.get(K("extraRuecken"),false)){const vl=vorlagen();if(!vl.some(v=>v.id==="ru"))vl.push({...EXTRA_RUECKEN,ex:EXTRA_RUECKEN.ex.map(([n,s,w])=>({n,s,w}))});setVorlagen(vl);S.set(K("extraRuecken"),true)}
   $("hallo").textContent=wer==="noah"?"Servus Noah":"Servus Clemens";
   $("heute").textContent=new Date().toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"});
